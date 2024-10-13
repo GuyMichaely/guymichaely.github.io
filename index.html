@@ -2,19 +2,28 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta name="author" content="Guy Michaely">
+        <meta name="description" content="A website to learn html and css from the ground up">
         <title>The web!!</title>
+        <meta property="og:title" content='The web!!'>
+        <meta
+            property="og:description"
+            content="A website I'm building to learn html and css from the ground up. Helpful for me to commit the information to memory and also produce a tangible result for my learning." />
         <link rel="stylesheet" href="index.css">
     </head>
     <body>
-        <h2>Hello,</h2>
+        <h2>Hello</h2>
         <p>I'm building this website to learn css (and some html) from the ground up. I'll be using sites like <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Getting_started" title="MDN HTML intro">MDN</a> and</p>
-        <input type="text" placeholder="placeholder"></input>
+        <input type="checkbox" checked></input>
+        <p id="hi" some-attribute checked>Did you know that you can list an attribute on an element and it will have a value? if it's something like <code>checked</code> on an <code>input</code> element, then the value will be true. Otherwise, it seems to just be set to <code>''</code></p>
         <p id='single-quote-id'>Did you know you can use single quotes for attribute values? I've never seen that anywhere other than the <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/Getting_started">MDN guide</a> I'm reading.</p>
 
         <span id="fact-container">
             <h3 >Fact:</h3>
-            <p><i>&lt;meta charset="utf-8"&gt;</i> is superfluous when an HTTP Content-Type header is supplied, but MDN says to include it anyway. Seems like a good idea if the document is not being served over http.</p>
+            <ul><li><code>&lt;meta charset="utf-8"&gt;</code> is superfluous when an HTTP Content-Type header is supplied, but MDN says to include it anyway. Seems like a good idea if the document is not being served over http.</li></ul>
         </span>
 
+        <p>Japanese example: ご飯が熱い。(tried to use characters that aren't in ISO-8859-1 but modern browsers handle it)</p>
+        <p>Search engines use the <code>meta name="description"</code> tag to show a description of the page in search results. That's cool, I didn't know that. For the <code>author</code> meta, that's used by <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML/The_head_metadata_in_HTML#adding_an_author_and_description">CMSs according to MDN</a>.</p>
     </body>
 </html>

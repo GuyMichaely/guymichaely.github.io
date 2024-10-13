@@ -13,6 +13,8 @@ body {
     margin-bottom: 0px;
 }
 
-#fact-container p {
+#fact-container ul {
+    list-style-type: none;
     margin-top: 0px;
+    padding-left: 1.5em;
 }
