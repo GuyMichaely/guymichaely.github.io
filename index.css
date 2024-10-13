@@ -1,0 +1,18 @@
+body {
+    margin: 0;
+}
+
+#title {
+    margin-top: 1em;
+    display:inline-block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#fact-container h3 {
+    margin-bottom: 0px;
+}
+
+#fact-container p {
+    margin-top: 0px;
+}
