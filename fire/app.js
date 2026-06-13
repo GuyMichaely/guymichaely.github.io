@@ -159,7 +159,6 @@ document.getElementById("demoModeButton").addEventListener("click", () => {
   if (!state.demoMode) {
     if (readCachedDashboardData() !== null) {
       const password = window.prompt("Set a password required to exit demo mode:");
-      if (!password) return;
       window.localStorage.setItem(DEMO_PASSWORD_KEY, password);
     }
 
