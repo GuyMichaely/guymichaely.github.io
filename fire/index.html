@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portfolio dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <div class="app-shell" id="appShell">
+      <aside class="app-sidebar panel" id="filterSidebar" aria-label="Filters">
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-controls="sidebarContent" aria-expanded="true" aria-label="Hide filters">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="sidebar-content" id="sidebarContent">
+          <div class="sidebar-head">
+            <h1>Filters</h1>
+            <div class="data-controls-group">
+              <button class="data-controls-toggle" id="dataControlsToggle" type="button" aria-expanded="true" aria-controls="dataControls">
+                <span>Data</span>
+                <span id="dataControlsChevron">&#9662;</span>
+              </button>
+              <div class="data-controls" id="dataControls">
+                <div class="refresh-actions" aria-label="Refresh data">
+                  <button class="primary refresh-data-button" id="refreshPricesButton" type="button">Prices</button>
+                  <button class="primary refresh-data-button" id="refreshHoldingsButton" type="button">Holdings</button>
+                  <button class="primary refresh-data-button" id="refreshEverythingButton" type="button">Everything</button>
+                </div>
+                <div class="sidebar-admin-actions">
+                  <button class="demo-mode-button" id="demoModeButton" type="button">Demo mode</button>
+                </div>
+                <label class="api-url-field">
+                  <span>API URL</span>
+                  <input id="apiUrlInput" type="text" autocomplete="off" spellcheck="false" placeholder="https://example.com/api">
+                </label>
+                <div class="subtle" id="apiUrlStatus"></div>
+                <div class="subtle" id="dataFreshness"></div>
+              </div>
+            </div>
+          </div>
+          <nav class="section-nav" aria-label="Dashboard sections">
+            <div class="section-nav-copy">
+              <div class="section-nav-title">Sections</div>
+              <div class="section-nav-subtitle">Current location</div>
+            </div>
+            <a class="section-nav-link active" href="#fire" data-section-nav="fire">FIRE</a>
+            <a class="section-nav-link" href="#concentration" data-section-nav="concentration">Concentration</a>
+            <a class="section-nav-link" href="#sale-planner" data-section-nav="sale-planner">Sale planner</a>
+            <a class="section-nav-link" href="#rebalance" data-section-nav="rebalance">Rebalance</a>
+            <a class="section-nav-link" href="#data-management" data-section-nav="data-management">Manage data</a>
+            <a class="section-nav-link" href="#filtered-lots" data-section-nav="filtered-lots">Filtered lots</a>
+          </nav>
+          <section class="sidebar-filters" id="sidebarFilters" aria-labelledby="sidebarFiltersTitle">
+            <div class="sidebar-section-header">
+              <div class="panel-title" id="sidebarFiltersTitle">Selections</div>
+              <button id="resetFilters">Reset</button>
+            </div>
+            <div class="filter-resize-shell">
+              <div class="filter-grid" id="filters"></div>
+            </div>
+          </section>
+        </div>
+        <div class="sidebar-width-edge" id="sidebarWidthResize" role="separator" aria-orientation="vertical" aria-label="Resize filters sidebar"></div>
+      </aside>
+
+      <main class="app-main">
+    <div class="planner-message first-run-hint" id="firstRunHint" hidden>
+      <p><strong>Welcome.</strong> Connect to the API by entering its endpoint in the sidebar's <strong>API URL</strong> field, or click <strong>Demo mode</strong> to explore a sample portfolio.</p>
+    </div>
+    <section class="panel net-worth-panel" id="fire">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">FIRE</div>
+          <div class="subtle">Net worth, cash flow, and FIRE-rate sensitivity.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="fire-headline-grid">
+          <div class="stat hero-stat">
+            <div class="net-worth-headline">
+              <div>
+                <div class="stat-label">Current net worth</div>
+                <div class="stat-value" id="fireNetWorth">—</div>
+              </div>
+              <div class="net-worth-side-metric">
+                <div class="stat-label">Expected monthly net worth change</div>
+                <div class="stat-value" id="fireExpectedMonthlyChange">—</div>
+              </div>
+            </div>
+            <div class="net-worth-lines">
+              <div class="net-worth-line">
+                <span>Portfolio value</span>
+                <span id="fireNetWorthPortfolio">—</span>
+              </div>
+              <div class="net-worth-line total">
+                <span>Cash net of debt</span>
+                <span id="fireNetWorthCashNet">—</span>
+              </div>
+              <div class="net-worth-line detail">
+                <span>Cash balance</span>
+                <span id="fireNetWorthCash">—</span>
+              </div>
+              <div class="net-worth-line detail">
+                <span>Brokerage debt</span>
+                <span id="fireNetWorthBrokerageDebt">—</span>
+              </div>
+              <div class="net-worth-line detail">
+                <span>Other debt</span>
+                <span id="fireNetWorthOtherDebts">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="stat hero-stat fire-rate-stat">
+            <div class="fire-rate-input-block">
+              <label class="stat-label" for="fireRateInput">FIRE rate</label>
+              <div class="fire-rate-entry">
+                <input id="fireRateInput" type="number" min="0" step="0.01" value="3">
+                <span>%</span>
+              </div>
+            </div>
+            <div class="fire-rate-metrics">
+              <div class="fire-rate-metric-wide">
+                <div class="stat-label" id="fireSupportBufferLabel">Greatest portfolio drop survivable</div>
+                <div class="stat-value" id="fireSupportBuffer">—</div>
+              </div>
+              <div class="fire-rate-metric-wide">
+                <div class="stat-label">Extra portfolio value needed</div>
+                <div class="stat-value" id="fireExtraPortfolioNeeded">—</div>
+              </div>
+              <div class="fire-rate-metric-full">
+                <div class="stat-label" id="fireMinimumRateLabel">Minimum FIRE assumption portfolio can support</div>
+                <div class="stat-value" id="fireMinimumRate">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fire-main-grid">
+          <div class="fire-card">
+            <div class="fire-card-title">Expected Portfolio Growth</div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Unknown-rate asset delta</span>
+              <span class="fire-card-value" id="fireUnknownRateDelta">—</span>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Known-rate asset delta</span>
+              <span class="fire-card-value" id="fireKnownRateDelta">—</span>
+            </div>
+            <div class="fire-card-row total">
+              <span class="fire-card-label">Portfolio growth before cash flow</span>
+              <span class="fire-card-value" id="firePortfolioGrowthDelta">—</span>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Net monthly cash flow</span>
+              <span class="fire-card-value" id="fireNetMonthlyCashFlowInline">—</span>
+            </div>
+            <div class="fire-card-row total emphasis">
+              <span class="fire-card-label">Expected monthly net worth change</span>
+              <span class="fire-card-value" id="fireExpectedMonthlyChangeInline">—</span>
+            </div>
+          </div>
+          <div class="fire-card">
+            <div class="fire-card-title-row">
+              <div class="fire-card-title">Cash Flow</div>
+              <div class="info-wrap">
+                <button class="info-button" id="cashFlowInfoButton" type="button" aria-label="About cash flow">i</button>
+                <div class="info-popover" id="cashFlowInfoPopover">
+                  <p>Cash flow includes recurring income and expenses, purchases, debt servicing, and liquid interest from known-rate balances marked as cash-flow-contributing.</p>
+                </div>
+              </div>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Recurring expenses</span>
+              <span class="fire-card-value" id="fireRecurringExpenses">—</span>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Monthly purchasing total</span>
+              <span class="fire-card-value" id="fireMonthlySpend">—</span>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Debt servicing</span>
+              <span class="fire-card-value" id="fireDebtServicing">—</span>
+            </div>
+            <div class="fire-card-row total">
+              <span class="fire-card-label">Total monthly outflow</span>
+              <span class="fire-card-value" id="fireTotalMonthlyOutflow">—</span>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Recurring income</span>
+              <span class="fire-card-value" id="fireRecurringIncome">—</span>
+            </div>
+            <div class="fire-card-row">
+              <span class="fire-card-label">Liquid interest growth</span>
+              <span class="fire-card-value" id="fireLiquidInterestGrowth">—</span>
+            </div>
+            <div class="fire-card-row total emphasis">
+              <span class="fire-card-label">Net monthly cash flow</span>
+              <span class="fire-card-value" id="fireNetMonthlyCashFlow">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="status" id="fireStatus"></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="panel" id="concentration">
+        <div class="panel-header">
+          <div class="panel-title-with-info">
+            <div class="info-wrap">
+              <button class="info-button" id="sectorInfoButton" type="button" aria-label="About sector exposure filtering">i</button>
+              <div class="info-popover info-popover-left" id="sectorInfoPopover">
+                <p>Sector exposure is weighted. A fund can contribute to several sectors, while an individual company usually contributes to one.</p>
+                <p>Filtering by sector includes the selected sector-weighted portion of mixed holdings. The sale planner disables partial sector filters because a tax lot can only be sold as a holding, not as one sector slice.</p>
+              </div>
+            </div>
+            <div>
+              <div class="panel-title">Concentration</div>
+              <div class="subtle" id="chartSubtitle">Five concentration views will populate after data loads.</div>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <div class="pie-visibility-controls" id="pieVisibilityControls" aria-label="Pie metric visibility"></div>
+            <div class="info-wrap">
+              <button class="info-button" id="hideInactiveInfoButton" type="button" aria-label="About hiding inactive legend rows">i</button>
+              <div class="info-popover" id="hideInactiveInfoPopover">
+                <p>Hides legend rows for values that are currently turned off. This does not change filters, selections, or chart totals.</p>
+              </div>
+            </div>
+            <label class="toggle-control">
+              <input id="hideInactivePieBullets" type="checkbox">
+              Hide inactive
+            </label>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="pie-carousel" id="pieCarousel">
+            <button class="carousel-button" id="prevPie" type="button" aria-label="Previous concentration view" disabled>&#8249;</button>
+            <div class="pie-stage" id="pieStage"></div>
+            <button class="carousel-button" id="nextPie" type="button" aria-label="Next concentration view" disabled>&#8250;</button>
+          </div>
+          <div class="carousel-footer">
+            <div class="carousel-tabs" id="pieTabs" aria-label="Concentration views"></div>
+            <div class="carousel-count" id="pieCount">1 / 5</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Summary</div>
+        </div>
+        <div class="panel-body">
+          <div class="stat-grid">
+            <div class="stat filtered-money-stat">
+              <div class="summary-pair">
+                <div>
+                  <div class="stat-label">Filtered value</div>
+                  <div class="stat-value" id="totalValue">—</div>
+                </div>
+                <div>
+                  <div class="stat-label">Filtered profit</div>
+                  <div class="stat-value" id="totalProfit">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Tickers</div>
+              <div class="stat-value" id="tickerCount">—</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Lots</div>
+              <div class="stat-value" id="lotCount">—</div>
+            </div>
+          </div>
+          <div class="status" id="statusText"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel filters" id="sale-planner">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Tax-lot sale planner</div>
+          <div class="subtle">Uses lots with basis data, sorted to realize losses first / gains last.</div>
+        </div>
+        <div class="axis-controls">
+          <label class="sale-mode-toggle" aria-label="Sale curve mode">
+            <span class="sale-mode-option sale-mode-option-tax">Tax-efficient</span>
+            <input id="saleModeToggle" type="checkbox">
+            <span class="sale-mode-option sale-mode-option-constant">Keep mix</span>
+          </label>
+          <label class="toggle-control">
+            <input id="saleNetX" type="checkbox" checked>
+            Net proceeds
+          </label>
+          <label class="toggle-control">
+            <input id="saleSymlogX" type="checkbox">
+              Log X
+          </label>
+          <label class="toggle-control">
+            <input id="saleSymlogY" type="checkbox">
+              Log Y
+          </label>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="sale-grid">
+          <div class="chart-card">
+            <div class="chart-title" id="saleCurveTitle">Tax-efficient sale curve</div>
+            <div class="subtle" id="saleCurveSubtitle">Use the dashboard filters to populate the curve.</div>
+            <svg id="saleCurve" class="line-chart" viewBox="0 0 760 280"></svg>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Sale summary</div>
+            <div class="stat-grid">
+              <div class="stat">
+                <div class="stat-label" id="saleMaxXLabel">Max pull-out</div>
+                <div class="stat-value" id="saleMaxX">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Final profit</div>
+                <div class="stat-value" id="saleFinalProfit">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Eligible lots</div>
+                <div class="stat-value" id="saleLotCount">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Eligible tickers</div>
+                <div class="stat-value" id="saleTickerCount">—</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label" id="saleMarginPaydownLabel">Margin paydown</div>
+                <div class="stat-value" id="saleMarginPaydown">—</div>
+              </div>
+            </div>
+            <div class="sale-targets">
+              <div class="sale-target">
+                <label id="saleAmountLabel" for="saleAmountInput">Net dollars to pull out</label>
+                <input id="saleAmountInput" type="text" inputmode="decimal" placeholder="e.g. 10,000.00">
+              </div>
+              <div class="sale-target">
+                <label for="saleProfitInput">Profit target</label>
+                <input id="saleProfitInput" type="text" inputmode="decimal" placeholder="e.g. 5,000.00">
+              </div>
+              <div class="sale-target">
+                <label for="saleMarginPaydownInput">Margin paydown</label>
+                <input id="saleMarginPaydownInput" type="text" inputmode="decimal" readonly placeholder="Auto">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="companion-carousel">
+          <button class="carousel-button" id="prevCompanion" type="button" aria-label="Previous sale breakdown" disabled>&#8249;</button>
+          <div class="companion-stage" id="companionStage"></div>
+          <button class="carousel-button" id="nextCompanion" type="button" aria-label="Next sale breakdown" disabled>&#8250;</button>
+        </div>
+        <div class="carousel-footer">
+          <div class="carousel-tabs" id="companionTabs" aria-label="Sale breakdown views"></div>
+          <div class="carousel-count" id="companionCount">1 / 5</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel filters" id="rebalance">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Exposure rebalance planner</div>
+          <div class="subtle">Optimized estimate for changing sector exposure using eligible sales and purchases.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="rebalance-layout">
+          <div class="rebalance-target-area">
+            <div class="chart-title">Target sector exposure</div>
+            <div class="subtle" id="rebalanceTargetStatus">Current exposure concentrations populate after data loads.</div>
+            <div class="exposure-target-grid" id="exposureTargets"></div>
+            <div class="rebalance-actions">
+              <button id="resetExposureTargets" type="button">Reset to current</button>
+            </div>
+          </div>
+
+          <div class="rebalance-side-area">
+            <div class="chart-card rebalance-realization-card">
+              <div class="rebalance-realization-card-head">
+                <div class="chart-title">Realization constraints</div>
+                <button id="resetRebalanceRealizationLimits" type="button">Reset limits</button>
+              </div>
+              <div class="rebalance-realization-limits" aria-label="Realization constraints">
+                <label class="rebalance-realization-limit">
+                  <span>Min gross gain</span>
+                  <input id="rebalanceMinGrossGain" type="number" min="0" step="any" value="0">
+                </label>
+                <label class="rebalance-realization-limit">
+                  <span>Max gross loss</span>
+                  <input id="rebalanceMaxGrossLoss" type="number" min="0" step="any" value="0">
+                </label>
+              </div>
+            </div>
+
+            <div class="chart-card rebalance-summary-card">
+              <div class="chart-title">Rebalance summary</div>
+              <div class="stat-grid">
+                <div class="stat">
+                  <div class="stat-label">Gross trade volume</div>
+                  <div class="stat-value" id="rebalanceTradeVolume">—</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-label">Gross profit</div>
+                  <div class="stat-value" id="rebalanceGrossProfit">—</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-label">Gross loss</div>
+                  <div class="stat-value" id="rebalanceGrossLoss">—</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-label">Net realized</div>
+                  <div class="stat-value" id="rebalanceNetProfit">—</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-label">Transactions</div>
+                  <div class="stat-value" id="rebalanceTransactionCount">—</div>
+                </div>
+              </div>
+              <div class="status" id="rebalanceStatus">No plan calculated.</div>
+            </div>
+          </div>
+
+          <div class="rebalance-trade-area">
+            <div class="chart-title">Trade eligibility</div>
+            <div class="subtle">Sell and buy rules are independent. The planner can only buy tickers already present in this dashboard, then narrows that list with the buy filters.</div>
+            <div class="trade-filter-sections">
+              <div class="trade-filter-section">
+                <div class="trade-filter-section-head">
+                  <div class="trade-filter-section-title">Can sell</div>
+                  <div class="subtle">Eligible lots for raising cash.</div>
+                </div>
+                <div class="resize-shell trade-filter-resize-shell">
+                  <div class="trade-filter-grid" id="sellTradeFilters"></div>
+                  <div class="resize-edge" data-resize-target="sellTradeFilters" role="separator" aria-orientation="horizontal" aria-label="Resize sell filters"></div>
+                </div>
+              </div>
+              <div class="trade-filter-section">
+                <div class="trade-filter-section-head">
+                  <div class="trade-filter-section-title">Can buy</div>
+                  <div class="subtle">Eligible tickers to purchase.</div>
+                </div>
+                <div class="resize-shell trade-filter-resize-shell" id="buyTradeFilterShell">
+                  <div class="trade-filter-grid" id="buyTradeFilters"></div>
+                  <div class="resize-edge" data-resize-target="buyTradeFilters" role="separator" aria-orientation="horizontal" aria-label="Resize buy filters"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="planner-message" id="rebalanceTableMessage">Planned transactions will appear here once a rebalance plan is calculated.</div>
+        <div class="resize-shell rebalance-table-resize-shell" hidden>
+          <div class="rebalance-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Action</th>
+                  <th>Account</th>
+                  <th>Ticker</th>
+                  <th class="num">Dollars</th>
+                  <th class="num">Shares</th>
+                  <th class="num">Realized profit</th>
+                </tr>
+              </thead>
+              <tbody id="rebalanceRows"></tbody>
+            </table>
+          </div>
+          <div class="resize-edge" data-resize-target="rebalanceRows" role="separator" aria-orientation="horizontal" aria-label="Resize rebalance transactions"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel filters" id="data-management">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Data management</div>
+          <div class="subtle">Manage accounts, record buys and sells, and log purchases without leaving the dashboard.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="management-tabs" id="managementTabs" aria-label="Data management views">
+          <button type="button" data-management-tab="accounts">Accounts</button>
+          <button type="button" data-management-tab="trade">Record trades</button>
+          <button type="button" data-management-tab="purchase">Add purchase</button>
+        </div>
+        <div class="status management-status" id="managementStatus"></div>
+
+        <div class="management-panel" id="managementAccountsPanel">
+          <div class="table-wrap management-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Account name</th>
+                  <th>Type</th>
+                  <th class="num">Cash balance</th>
+                  <th class="num">Cash monthly interest</th>
+                  <th>Cash flow</th>
+                  <th class="num">Margin balance</th>
+                  <th class="num">Margin monthly interest</th>
+                  <th>Margin cash flow</th>
+                  <th class="num">Lots</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="managementAccountRows"></tbody>
+            </table>
+          </div>
+          <form class="management-create-card" id="createAccountForm">
+            <div class="chart-title">Create account</div>
+            <div class="management-create-account">
+              <label>
+                <span>Account name</span>
+                <input id="createAccountName" type="text" autocomplete="off" required>
+              </label>
+              <label>
+                <span>Account type</span>
+                <select id="createAccountType">
+                  <option value="individual">Individual</option>
+                  <option value="roth">Roth</option>
+                  <option value="traditional">Pre-tax</option>
+                  <option value="cashEquivalent">Cash/equivalent</option>
+                  <option value="otherDebt">Debt</option>
+                </select>
+              </label>
+              <button class="primary" type="submit">Create account</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="management-panel" id="managementTradePanel" hidden>
+          <form id="tradeForm">
+            <div class="trade-grid" id="tradeGrid">
+              <div class="trade-sell-picker" id="tradeSellPicker">
+                <div class="subtle">Lots follow the sidebar filters.</div>
+                <button type="button" id="tradeSelectAll">Select all</button>
+                <div class="table-wrap management-table-wrap" id="tradeLotScroll">
+                  <table class="virtual-lot-table">
+                    <thead id="tradeLotHeader">
+                      <tr>
+                        <th style="width: 6%">Sell</th>
+                        <th data-trade-sort="accountName" style="width: 24%">Account</th>
+                        <th data-trade-sort="ticker" style="width: 12%">Ticker</th>
+                        <th class="num" data-trade-sort="shares" style="width: 18%">Shares</th>
+                        <th class="num" data-trade-sort="perShareBasis" style="width: 13%">Basis</th>
+                        <th data-trade-sort="date" style="width: 13%">Date</th>
+                        <th class="num" style="width: 14%">Volume ($)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tradeLotRows"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="trade-commit-panel">
+                <div class="management-tabs" id="tradeSideTabs" aria-label="Trade side">
+                  <button type="button" data-trade-side="buy">Buy</button>
+                  <button type="button" data-trade-side="sell">Sell</button>
+                </div>
+                <label id="tradeAccountWrap">
+                  <span>Account</span>
+                  <select id="tradeAccount"></select>
+                </label>
+                <label id="tradeTickerWrap">
+                  <span>Ticker</span>
+                  <input id="tradeTicker" type="text" autocomplete="off" required>
+                </label>
+                <div class="management-selected-lot" id="tradeSelectionSummary" hidden>No lots selected.</div>
+                <label id="tradeSharesWrap">
+                  <span>Shares</span>
+                  <input id="tradeShares" type="number" min="0" step="any" required>
+                </label>
+                <label id="tradeVolumeWrap">
+                  <span>Volume (total dollars)</span>
+                  <input id="tradeVolume" type="number" min="0" step="any" required>
+                </label>
+                <label id="tradeDateWrap">
+                  <span>Purchase date</span>
+                  <input id="tradeDate" type="date" required>
+                </label>
+                <div class="trade-settle-row">
+                  <label class="toggle-control">
+                    <input id="tradeSettleCash" type="checkbox" checked>
+                    Settle with account cash
+                  </label>
+                  <div class="info-wrap">
+                    <button class="info-button" id="tradeSettleInfoButton" type="button" aria-label="About cash settlement">i</button>
+                    <div class="info-popover" id="tradeSettleInfoPopover">
+                      <p>When on, buys subtract the volume from the account's cash balance and sells add it. Turn off to record lots given or taken away without touching cash.</p>
+                    </div>
+                  </div>
+                </div>
+                <button class="primary" type="submit" id="tradeSubmit">Record buy</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="management-panel" id="managementPurchasePanel" hidden>
+          <form class="management-create-card purchase-form" id="purchaseForm">
+            <div class="chart-title">Add purchase</div>
+            <div class="purchase-fields">
+              <label>
+                <span>Date</span>
+                <input id="purchaseDate" type="date" required>
+              </label>
+              <label>
+                <span>Amount</span>
+                <input id="purchaseAmount" type="text" autocomplete="off" required>
+                <span class="purchase-amount-preview" id="purchaseAmountPreview"></span>
+              </label>
+              <label>
+                <span>Categories</span>
+                <input id="purchaseCategories" type="text" autocomplete="off" placeholder="nutrition | food | spices">
+              </label>
+            </div>
+            <button class="primary" type="submit" id="purchaseSubmit">Add purchase</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel filters" id="filtered-lots">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Filtered lots</div>
+          <div class="subtle">Helpful for checking exactly what is feeding the charts.</div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="status" id="lotRowsStatus"></div>
+        <div class="resize-shell lot-table-resize-shell" id="lotTableWrap">
+          <div class="table-wrap" id="lotTableScroll">
+            <table class="virtual-lot-table">
+              <thead>
+                <tr>
+                  <th style="width: 10%">Type</th>
+                  <th style="width: 17%">Account</th>
+                  <th style="width: 14%">Sector</th>
+                  <th style="width: 9%">Ticker</th>
+                  <th style="width: 10%">Term</th>
+                  <th class="num" style="width: 10%">Shares</th>
+                  <th class="num" style="width: 10%">Price</th>
+                  <th class="num" style="width: 10%">Value</th>
+                  <th class="num" style="width: 10%">Profit</th>
+                </tr>
+              </thead>
+              <tbody id="lotRows"></tbody>
+            </table>
+          </div>
+          <div class="resize-edge" data-resize-target="lotRows" role="separator" aria-orientation="horizontal" aria-label="Resize filtered lots"></div>
+        </div>
+      </div>
+    </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- These scripts intentionally share globals and must stay in dependency order. -->
+  <script src="d3.min.js"></script>
+  <script src="app-state.js"></script>
+  <script src="app-format.js"></script>
+  <script src="app-dom-utils.js"></script>
+  <script src="app-chart-utils.js"></script>
+  <script src="app-resize.js"></script>
+  <script src="app-data-model.js"></script>
+  <script src="app-demo-data.js"></script>
+  <script src="app-data-loader.js"></script>
+  <script src="app-data-management.js"></script>
+  <script src="app-fire.js"></script>
+  <script src="app-portfolio-model.js"></script>
+  <script src="app-portfolio-views.js"></script>
+  <script src="app-sale-model.js"></script>
+  <script src="app-sale-planner.js"></script>
+  <script src="app-sale-targets.js"></script>
+  <script src="app-dashboard-render.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
