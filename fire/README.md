@@ -1,205 +1,227 @@
-# Portfolio Dashboard Technical Documentation
+# Portfolio Dashboard Feature Documentation
 
-This document describes the current implementation structure and technical contracts.
+This document describes the user-facing behavior of the portfolio dashboard.
 
-## Runtime Model
+## Data Loading
 
-The app is a static browser application with no build step. `index.html` loads global scripts in dependency order. That order is intentional and required because modules share global constants, state, and functions.
+The dashboard loads portfolio data from the API URL, which is entered in the sidebar's `API URL` field and persisted in browser storage — it is not part of the source code. A scheme-less entry is tried as `https://` first and `http://` second. An entered URL is adopted only after it answers a full `Everything` probe successfully; on failure the field flags the error and keeps the typed value while the previously working URL (and its cached data) stays in use. Clearing the field removes the stored URL while keeping the cached data; an explicit fetch or save attempted without a URL flags the field and reports that an API URL is required. Without a stored URL, page load uses any cached payload, and with neither it shows an empty dashboard with a welcome card. The sidebar's data controls (refresh buttons, demo mode, API URL, freshness line) collapse behind the `Data` toggle. The most recent complete dashboard payload is cached in browser storage, including sector weights. Holdings refreshes send the ticker list already present in the cached payload so the server only recalculates sector weights for newly held tickers.
 
-The DOM ids/classes in `index.html` are treated as a hard runtime contract. Event binding and render helpers query required nodes directly rather than guarding for missing markup.
+On normal page load, the dashboard uses cached API data when cached data exists; when it does not, the page load performs an `Everything` fetch. The sidebar refresh buttons provide three update levels:
 
-The page should be served over HTTP when using the rebalance optimizer. The optimizer runs in a Web Worker and loads `glpk.js` plus `glpk.wasm`; browser worker and WASM loading rules are more reliable from a local server than from `file://`.
+- `Prices`: fetches current prices and reuses cached holdings and sector weights.
+- `Holdings`: fetches current holdings and prices, sends the locally cached sector ticker list, and receives sector weights only for tickers not already cached by the browser.
+- `Everything`: fetches current holdings, prices, and all sector weights from scratch, replacing the cached dashboard payload.
 
-For local development, serve the repository root and open the served URL. A simple example is `python3 -m http.server 8765`, then `http://127.0.0.1:8765/`.
+If the server cannot complete a refresh, the Summary status line reports the server error code and message. Sector-resolution failures include the offending ticker.
 
-Bundled browser dependencies are `d3.min.js` for SVG charting and pie generation, plus `glpk.js`/`glpk.wasm` for rebalance optimization.
+The sidebar shows when the displayed data was fetched (`Data as of …`, from the cached payload's timestamp); the line is absent while demo mode is active. On a first run with no cached data and no API URL, a welcome card at the top of the page points to the API URL field and demo mode; it disappears once data loads.
 
-The runtime assumes a browser with Web Worker and WASM support. There is no compatibility fallback for browsers that lack those capabilities.
+## Demo Mode
 
-## Data Contract
+The `Demo mode` button in the sidebar swaps the dashboard to a built-in fake portfolio so the app can be shown without revealing real financial details. When cached data exists, entering prompts for a password that will be required to exit; the password check is a client-side convenience against shoulder-surfing, not real security. When no cached data exists there is nothing to protect, so entering and exiting need no password. Demo mode persists across reloads, so refreshing the page never flashes real data. While in demo mode the refresh buttons are disabled, data-management edits, creates, deletes, and trades are inert (the status line says changes are not saved), the locally cached real payload is untouched, and the `API URL` field does not show the stored URL. A real save still in flight when demo mode is entered updates the cache when it completes but never the screen; save responses from a previous API URL are discarded outright. Exiting with the correct password restores the real data from cache and resumes any pending saves. When no cached data exists, exiting also clears the demo data from the page, leaving the welcome card. Alternatively, entering a new API URL while in demo mode exits without a password by taking the app over: once the new URL answers a probe successfully, the protected cache and any pending saves for it are replaced — never shown — by the new backend's data; a failing URL leaves demo mode untouched.
 
-The API payload is assumed to be complete and correctly formatted.
+## Layout
 
-The API URL lives in browser storage under `financialDash.apiUrl`, set from the sidebar; it is the deployment's only secret and is intentionally absent from the source. The browser cache stores the complete dashboard payload with a saved timestamp wrapper. Cache absence is a normal lifecycle state. The app reads that cache entry on normal page load and performs an `everything` fetch when it is absent. It does not compare cached payload metadata to an app version. Sector weights remain part of that cached payload as `[sectorNames, weightsByTicker]`.
+The dashboard uses a collapsible left Filters sidebar, horizontally resizable without limits in either direction (sidebar contents clip when it is too narrow; the main content squeezes when it is too wide) for data refresh actions, section navigation, and global dashboard filters. The main page is organized into major working areas:
 
-The API supports three refresh modes via the `mode` query parameter:
+- FIRE summary
+- Portfolio concentration
+- Filter summary
+- Tax-lot sale planner
+- Exposure rebalance planner
+- Data management
+- Robinhood export conversion
+- Filtered lot table
 
-- `prices`: returns `priceMap` only. The browser merges it into the cached complete dashboard payload and reuses cached holdings and sector weights.
-- `holdings`: returns holdings, prices, dashboard metrics, and sector weights only for tickers absent from the cached dashboard payload. The browser sends its cached sector ticker list as JSON in `knownSectorTickers`.
-- `everything`: returns holdings, prices, dashboard metrics, and sector weights for every held security ticker. The browser replaces the cached dashboard payload from this response.
+The sidebar section navigation highlights the active main section while the page scrolls. Info popovers throughout the app appear while their info button is hovered or keyboard-focused and disappear when hover and focus leave.
 
-The deployment URL is reachable by anyone who finds it, so the server validates every request at the trust boundary before touching the spreadsheet: modes, action names, field types, account/row lookups, lot row numbers, and sellable share counts. Validation failures return code `BAD_REQUEST`; any other server error is caught and returned as code `INTERNAL` rather than leaking an HTML error page. Lookups that would otherwise write or delete outside their named range (for example deleting by a name that is not a classified account) are rejected by these checks.
+Most analytical panels update from the same global dashboard filters. The rebalance planner has its own trade eligibility filters because "included in the dashboard" and "eligible to trade" are separate decisions.
 
-API failures are returned as JSON with an `error` object. Sector-resolution failures use code `SECTOR_WEIGHT_RESOLUTION_FAILED` and include the offending ticker. Yahoo external request failures use `YAHOO_NETWORK_REQUEST_FAILED`, `YAHOO_HTTP_REQUEST_FAILED`, or `YAHOO_RESPONSE_ERROR`, also with the ticker being resolved. Browser-side dashboard API network failures use `DASHBOARD_API_NETWORK_FAILED`; non-2xx or non-JSON responses surface as `DASHBOARD_API_BAD_RESPONSE`.
+The rebalance planner's current exposure and target percentages are based on the full loaded portfolio, not the dashboard filter selection.
 
-The API also accepts POST mutations for spreadsheet-backed data management. The browser sends `actions`, an ordered array of mutation objects each with an `action` field, plus its cached sector ticker list; the server applies the actions in order and returns one payload. Supported actions are `createAccount`, `updateAccount`, `deleteAccount`, `updateCashEquivalent`, `deleteCashEquivalent`, `updateOtherDebt`, `deleteOtherDebt`, `recordTrade`, and `addPurchase`. Mutation POSTs are serialized in the browser: at most one request is in flight at a time. A successful mutation returns updated holdings, prices, dashboard metrics, and sector weights only for tickers absent from the cached sector ticker list; the browser merges those sector weights into the cached complete payload and replaces the cache. Network and server API errors are reported in the Data management status line.
+## FIRE Summary
 
-Expected top-level API fields:
+The FIRE section summarizes current net worth, expected monthly net worth change, cash flow, and FIRE-rate sensitivity.
 
-- `priceMap`: object keyed by ticker.
-- `accounts`: array of account objects.
-- `cashEquivalents`: array of external cash-equivalent rows from the `cash+equivalents` sheet, defaulted to `Individual` account type.
-- `otherDebts`: array of debt rows from the `other debt` sheet with `name`, positive `balance` and `monthlyInterest` magnitudes (absent cells emitted as `0`), and `contributesToCashFlow`.
-- `sectorWeights`: `[sectorNames, weightsByTicker]`.
-- `dashboardMetrics`: FIRE and cash-flow inputs.
+The user can edit the FIRE rate input. Related figures update immediately, including:
 
-Account objects are expected to include `accountName`, `accountType`, `accountTypeKey`, `holdings`, `financing`, and `maintenanceByTicker`. `holdings` are security rows from the account tab and include the source spreadsheet row number used by sell mutations. Individual holdings include `term`, `date`, and `perShareBasis`; Roth and pre-tax holdings use account-type term/profit treatment. `financing` rows are account-tab cash/debt entries with `kind`, numeric `balance`, numeric `monthlyInterest`, and `contributesToCashFlow`; absent sheet balance/interest cells are emitted as `0`. `maintenanceByTicker` is derived from the account tab's side table and is used only when that account has a positive margin balance. It covers every held ticker: tickers absent from the side table and empty maintenance cells are emitted as `0`, so margin math stays finite until a real rate is entered in the sheet.
+- Current net worth and expected monthly net worth change
+- Portfolio value and cash net of debt
+- Expected portfolio growth before cash flow
+- Net monthly cash flow
+- Greatest portfolio drop survivable or percent addition needed
+- Extra portfolio value needed
 
-Ticker, account, account-type, term, and sector identifiers are exact-match trusted fields. The browser does not trim, uppercase, stringify, or otherwise normalize those identifiers after data is loaded. Sector weight vectors are trusted as API output and are not renormalized in the browser.
+The net worth headline is built from portfolio value plus cash net of brokerage debt and other debt. Brokerage margin debit is shown separately from other debt.
 
-`sectorWeights` uses a shared sector-name vector plus one same-length numeric vector per ticker. Zero-weight sectors are dropped from the per-ticker sparse map. Ticker vectors are expected to match the sector-name vector and sum to 1.
+Cash flow includes recurring income and expenses, purchases, debt servicing, and liquid interest from known-rate balances marked as cash-flow-contributing.
 
-The server does not persist sector weights to the spreadsheet. Each API request calculates only the sector weights required by that refresh mode, memoizing repeated tickers within that request only. Yahoo quote-summary requests are sent in `UrlFetchApp.fetchAll` batches, controlled by `YAHOO_QUOTE_SUMMARY_BATCH_SIZE` and `YAHOO_QUOTE_SUMMARY_BATCH_DELAY_MS` in `server/sectors.gs`. Equity funds use Yahoo's fund sector-weighting table when Yahoo provides one; commodity and bond/fixed-income funds without that table are mapped from Yahoo's fund category to the `COMMODITIES` or `BOND FUNDS` sector.
+Known-rate asset delta is modeled as a net-worth growth component only for known-interest balances that are not marked as cash-flow-contributing. The known-interest balance is treated as part of existing net worth, not as an additional asset bucket.
 
-`dashboardMetrics` supplies monthly spend, cash balance, other debt, recurring income/expense totals, known-interest balance, known-interest portfolio-growth monthly delta, liquid interest growth, and debt servicing. The server derives those known-interest and cash-flow metrics from account financing rows, security expected-growth fields, `cash+equivalents`, and `other debt`.
+The minimum FIRE assumption portfolio can support is derived from current assets and cash-flow needs; changing the editable FIRE rate changes the comparison color, not the minimum assumption value.
 
-Account mutations use the `AccountClassifications` named range. Account names are sheet tab names. Creating an account copies the corresponding account-type template sheet and appends the account classification row; creating a `cashEquivalent` or `otherDebt` "account" instead writes only the name into the first empty row of the `CashEquivalents` / `OtherDebts` named range, leaving balance and interest cells empty (absent balance/interest cells are emitted as `0`, like account financing cells). Individual accounts copy `_template_individual_account`; Roth and pre-tax accounts both copy `_template_tax_advantaged_account` because they share the same tab structure. Updating an account renames the sheet when the account name changes, updates the classification row, and rewrites the balance and cash-flow cells of the `cash` and `margin` rows in the account tab's financing table; the monthly interest cells are never written, so they can hold spreadsheet formulas. When the account type changes between Individual and tax-advantaged layouts, the server restructures the account sheet by inserting or deleting the whole `date` and `per share basis` spreadsheet columns, which keeps the financing and maintenance tables aligned because they sit to the right of the lot table; column formulas shift with the columns. Deleting an account deletes the classification row cells and hard-deletes the sheet.
+FIRE sensitivity fields that are mathematically undefined for the current inputs show `—`. This happens when a support metric would require division by zero, such as a 0% FIRE assumption for portfolio-needed calculations, zero net worth for percentage-addition calculations, or no unknown-rate assets for the minimum supportable FIRE assumption. The minimum supportable FIRE assumption also shows `—` when the monthly coefficient needed to balance cash flow is outside the annual-rate formula's domain.
 
-The Accounts grid runs one save pipeline for row updates, deletes, and creates. The browser debounces edits per quiet period and keeps two queues: an ordered operation log of creates and deletes in click order, and per-row dirty flags keyed by `account:<name>`, `cashEq:<name>`, or `debt:<name>` using the row's last-saved name. Each send batches all queued work into a single request — the operation log chronologically (so create→delete→create cycles of the same name replay correctly), followed by one update per dirty row — and the next batch is sent after the previous response unless the user is mid-edit (an active debounce defers the send to its flush). Edits coalesce (a row's update carries its current state, however many edits produced it); creates and deletes replay individually. A failed batch is re-queued ahead of newer work and retried after a debounce interval. Requests are built at send time, so a delete queued behind an in-flight rename targets the post-rename name (renames remap dirty and pending-delete keys). Rows pending deletion render greyed and disabled without blocking the rest of the grid. Creates are optimistic: a synthetic row is inserted into client state and the grid immediately, payload applies copy the payload arrays and re-insert synthetic rows for still-pending creates (so optimistic rows survive intervening responses without contaminating the cached payload), and edits to a not-yet-confirmed row queue behind its create in the same pipeline. After a response is applied, dirty rows' input values and the focused field (with text caret position) are restored over the re-rendered grid. A failed work item is retained (a failed update re-marks its row dirty) and retries automatically one debounce interval after the error response; user edits push the retry later by resetting the debounce. With no API URL stored, the flush is blocked and the URL field is flagged rather than attempting a request. A fresh data load (page load, refresh, demo toggle, or adopting a URL) replaces the grid and clears any pending edit/op queues, so a pending key can never outlive the row it names.
+## Concentration Views
 
-`updateCashEquivalent` and `updateOtherDebt` write the name, balance, and cash-flow cells of the matching row in the `CashEquivalents` / `OtherDebts` named range, located by the original name in the range's first column. The monthly interest cell is never written. The delete variants remove the matching row's cells from the range, shifting later rows up. Debt balances are stored as positive magnitudes in the sheet; the grid negates them for display and negates the edited value back before sending, so `updateOtherDebt` receives the sheet-sign balance.
+The Concentration panel shows portfolio concentration across multiple dimensions:
 
-`recordTrade` identifies sold lots by account name plus spreadsheet row numbers from the most recent payload. This is intentionally a live-row contract: the app assumes the sheet is not edited between lookup and commit. A buy carries `accountName`, `ticker`, `shares`, `volume`, and (for Individual sheets) `date`, and appends a lot row at the first empty lot row, writing ticker and shares plus date and per-share basis (`volume / shares`). A buy also appends the ticker to the account tab's maintenance side table when missing, leaving the maintenance cell empty for the user to fill; absent maintenance cells are emitted as `0`, keeping margin math finite until a real rate is entered. A sell carries `sales` as `[{accountName, volume, lots: [{rowNumber, shares}]}]`, one entry per account, with each lot's share quantity taken from the picker's editable drafts and each account's volume summed from the per-lot volumes; a lot sold at its full sheet share count has its lot cells deleted (shifting later lot cells upward, which is why deletions are processed bottom-up), and a partially sold lot has the shares subtracted. When `settleWithCash` is set, the buy volume drains the buy account's `cash` balance cell to zero and any remainder increments its `margin` balance cell; each sale account's volume first reduces its `margin` balance cell (down to zero) and the remainder increments its `cash` balance cell.
+- Account type
+- Account name
+- Sector exposure
+- Ticker
+- Holding term
 
-`addPurchase` carries `date`, `amount`, and `categories` (a string array split from the `|`-separated input). It appends a row to the Purchases sheet at the first row whose amount cell is empty (scanning from the data start), writing the date to the `date` column, the amount to the `spent (net of cc rewards)` column as a formula when it begins with `=` (`setFormula`) and otherwise as a value (`setValue`, which Sheets coerces to a number), and each category tag into successive columns from `categories` onward. The browser previews `=` expressions by evaluating the arithmetic locally (restricted to a numeric/operator character set); an expression outside that set is shown as uncomputable but still submitted for the sheet to evaluate. The Purchases `SpendPerMonth` cell averages the amount column over the tracking window, so the appended row flows into `dashboardMetrics.monthlySpend` on the next payload read.
+Each concentration view can show value, profit, or both. The `Value` and `Profit` controls in the Concentration header toggle those chart types. If only one chart type is visible, the remaining pie is centered and given more horizontal room.
 
-## Script Responsibilities
+Both pie types aggregate by slice first, then display only slices whose aggregate amount is positive. The value pie uses current holding value. The profit pie uses realized profit, so gains and losses inside the same slice are netted before deciding whether the slice is visible.
 
-- `app-state.js`: global constants and mutable application state.
-- `app-format.js`: formatting, parsing, sorting, escaping, and small numeric helpers.
-- `app-dom-utils.js`: shared DOM render helpers for stats and the virtual table renderer. `createVirtualTableRenderer` renders rows as a windowed slice between two spacer rows sized from a measured row height, re-sliced on scroll with overscan, so the tbody height and scrollbar match the full list while only nearby rows exist in the DOM. The filtered-lot table and the Record trades sell picker both use it; a table measured while hidden re-measures on its next visible render.
-- `app-chart-utils.js`: reusable SVG/XY chart rendering and hover behavior.
-- `app-resize.js`: resize-handle behavior for filter lists, sale target breakdowns, rebalance transactions, and filtered lot rows.
-- `app-data-loader.js`: cache/API loading, applying prepared data, and triggering initial render.
-- `app-data-management.js`: account creation/deletion, the autosaving account grid, and the trade-recording UI backed by POST mutations.
-- `app-data-model.js`: API payload conversion into security lots, cash pseudo-positions, sector weights, account-financing-derived margin config, sorted lots, and margin summaries.
-- `app-fire.js`: net worth, cash flow, FIRE-rate sensitivity, and FIRE display updates.
-- `app-portfolio-model.js`: filtering, sector exposure math, pie slice construction, rebalance payload construction, and transaction aggregation.
-- `app-portfolio-views.js`: filters, concentration charts, exposure target UI, trade filters, rebalance worker lifecycle, and rebalance rendering.
-- `app-sale-model.js`: sale path generation, margin paydown simulation, companion sale series, and target transaction aggregation.
-- `app-sale-planner.js`: sale planner rendering and disabled-state handling.
-- `app-sale-targets.js`: linked sale amount/profit/margin target inputs.
-- `app-dashboard-render.js`: top-level dashboard render coordination.
-- `app.js`: event binding and startup.
-- `app-rebalance-worker.js`: GLPK-based rebalance optimization in a Web Worker.
+Cash appears as cash pseudo-positions in the value-based dashboard filters, summary totals, concentration views, and rebalance targets. Cash held inside loaded accounts uses that account's account type and account name with `CASH` as its sector, ticker, and term. Residual cash outside those accounts, net of brokerage margin and other debt, uses account type `Individual`, account name `Net cash`, and the same `CASH` sector, ticker, and term.
 
-## Portfolio Model
+Cash pseudo-positions have zero profit, so they do not create profit-pie slices. If residual cash is negative, the value pie does not draw a negative slice; pies display only positive aggregate slice values. The `CASH` sector and `CASH` term filters are linked because they represent the same cash classification.
 
-Each security lot stores account type, account name, ticker, term, shares, price, value, profit, sale value, realized profit, profit per dollar, and sector weights.
+Profit follows account treatment: individual accounts use cost basis, Roth accounts show zero taxable profit, and pre-tax accounts treat the full sale value as realized profit.
 
-The browser appends cash pseudo-positions after converting API holdings. Each loaded account's positive `cash` financing balance becomes a pseudo-position with that account's account type and account name, sector `CASH`, ticker `CASH`, term `CASH`, value equal to the cash balance, and profit `0`. The browser also appends one residual cash pseudo-position with account type `Individual`, account name `Net cash`, sector `CASH`, ticker `CASH`, term `CASH`, and value equal to total cash balance minus loaded-account cash, brokerage margin debit, and other debt.
+Pie slices and legend rows can be clicked to include or exclude values from the dashboard filter state. Shift-click isolates a single value.
 
-Cash pseudo-positions participate in dashboard filters, value totals, concentration views, and rebalance target exposure. They are excluded from sale-sorted lots, margin summaries, trade filter values, rebalance sell/buy candidates, and filtered lot table rows.
+The concentration carousel can be changed with the previous/next buttons or by clicking a view tab. Each visible pie card also has a local `Hide` button for quickly removing that metric from the current view; the header controls can restore hidden metrics.
 
-Account profit treatment is determined by account type:
+Sector exposure is weighted. Funds can contribute to multiple sectors, while individual companies typically contribute to one sector. When sector filters are partially selected, holdings are included according to the selected sector-weighted portion.
 
-- `Individual`: profit is based on cost basis.
-- `Roth`: profit is treated as zero.
-- `Pre-tax`: profit is treated as the full sale value.
+The `Hide inactive` option hides inactive legend rows from the visible legend. It does not change selected filters or chart totals. Legend rows use alternating shading to make color dots, labels, compact dollar values, and percentages easier to scan horizontally.
 
-Sector weights are sparse per ticker. A ticker can contribute to one or more sectors, and weighted exposure calculations use the provided sector weights directly.
+The sector info button explains weighted sector exposure and why partial sector filters disable the sale planner.
 
-Total sector exposure is expected to equal security value plus cash exposure because API sector weights are assumed to sum to 1 for every security ticker and cash pseudo-positions have a single `CASH` sector weight. Rebalance target dollars use the sector-weighted exposure total directly rather than falling back to raw portfolio value.
+## Filters
 
-Dashboard summary totals use whole-lot values unless the sector filter is partially selected. In that case, value and profit totals include only the selected sector-weighted fraction of each matching lot.
+The Filters sidebar provides include/exclude controls for:
 
-The summary pane renders filtered value and filtered profit in one paired stat. Concentration pies aggregate raw metric values by slice first, then render only slices with positive aggregate amounts. This means profit slices net gains and losses within the slice before deciding whether the slice is visible. Pie legends render compact dollar amounts and three-significant-digit percentages.
+- Account type
+- Account name
+- Sector exposure
+- Ticker
+- Holding term
 
-Margin accounts are derived from account financing rows with positive `margin` balances and the same account tab's per-ticker maintenance rules.
+The global dashboard filters live in the left sidebar. The sidebar can be collapsed, scrolled, and horizontally resized. The sidebar header stays visible while the section navigation and filter selections scroll together. Wider sidebar widths let filter groups reflow into additional columns. Each filter group can be vertically resized until its chip-list scrollbar has enough room to disappear. Clicking a filter value toggles it. Clicking a filter header selects all values or clears all values in that filter. Filter search boxes narrow long filter lists without changing selection.
 
-Margin summaries are derived from current account lots, debit, and maintenance rules. For each margin account, the app computes current excess equity and later uses that value to decide how much sale cash must be reserved for margin paydown.
+Account-name and account-type filter values include every loaded account, including accounts that currently contribute no lots, so newly created accounts appear immediately. Filter selections and searches survive data refreshes and saves: values that disappear are dropped, values new to the dashboard arrive selected, and existing selections are kept. The same persistence applies to the trade-eligibility filters in the rebalance planner.
 
-Dashboard filters and trade filters are separate:
+Filter groups can be resized vertically with their drag handles on desktop and mobile.
 
-- Dashboard filters determine which lots feed the summary, concentration views, sale planner, and filtered lot table. They also gate which holdings the Record trades sell picker offers: account type, account name, ticker, and term match exactly, and the sector filter admits a holding when any nonzero sector component of its ticker is selected. The sell request still targets the single account derived from the selected lots.
-- Trade filters determine which lots can be sold and which held tickers can be bought by the rebalance optimizer.
+The Summary panel reports filtered value, filtered profit, number of tickers, and number of security lots included by the current dashboard filters.
 
-Filter and trade-filter value lists are derived from loaded lots, with account-name and account-type lists additionally unioned with the loaded accounts so lot-less accounts appear. When filters are re-initialized after a data apply, selections, deselections, and search text carry over for values that were previously offered; values offered for the first time start selected. Exposure targets and realization limits still reset to data-derived defaults on every apply.
+When sector exposure is partially filtered, filtered value and filtered profit use only the selected sector-weighted portion of mixed-sector holdings. Non-sector filters include or exclude whole lots.
 
-Trade eligibility modes are `sell` and `buy`.
+## Tax-Lot Sale Planner
 
-Rebalance buy candidates are ticker-level candidates derived from currently held security tickers. The optimizer does not choose a destination account for purchases; buy rows are rendered without an account. Purchase candidates therefore do not add margin-maintenance requirements. Margin handling is limited to reserving required paydown when eligible margin-account lots are sold.
+The Tax-lot sale planner calculates sale paths using eligible tax lots. It can operate in:
 
-Ticker price and sector weights are assumed to be ticker-level facts. If the same ticker appears in multiple accounts, the first buy-eligible occurrence supplies the purchase candidate's price and sector weights.
+- Tax-efficient mode: sells lots sorted to realize losses first and gains last.
+- Keep mix mode: sells proportionally by ticker while using the lowest-profit lots inside each ticker first.
 
-## FIRE Calculations
+Sale profit follows the same account treatment used elsewhere in the dashboard: basis-based for individual accounts, zero for Roth accounts, and full sale value for pre-tax accounts.
 
-Net worth is portfolio value plus cash net of brokerage and other debt. Known-interest assets are assumed to be already included in net worth, not a separate additional asset bucket.
+The sale curve can use either:
 
-The editable FIRE rate is converted to an effective monthly coefficient. Unknown-rate assets use that coefficient. Known-interest balances remain excluded from FIRE-rate growth; their non-cash-flow monthly delta stays in portfolio growth, while liquid interest growth and debt servicing flow through net monthly cash flow.
+- Net proceeds: gross sale dollars minus required margin paydown.
+- Gross sale dollars: total dollars sold before margin paydown.
 
-## Sale Planner
+The sale planner also supports optional log-style scaling for the X and Y axes through the `Log X` and `Log Y` controls. The chart uses symlog internally, which is log-like away from zero while still displaying zero and negative realized-profit values.
 
-The tax-efficient sale mode sells eligible lots by ascending profit per dollar. The keep-mix mode sells proportionally by ticker among positive-sale-value ticker groups while selecting lower-profit lots within each ticker first. Zero-sale-value lots with nonzero realized profit are represented at the start of the keep-mix curve at `x = 0`.
+The sale summary reports:
 
-Sale mode state uses `tax` and `constant`.
+- Maximum pull-out or maximum sale, depending on the selected X-axis mode
+- Final realized profit
+- Eligible lots
+- Eligible tickers
+- Margin paydown
 
-Margin sale tracking simulates required paydown as lots are sold. Net sale proceeds equal gross sale dollars minus required margin paydown.
+The target inputs are linked:
 
-The margin sale tracker updates account market value, required equity, debit, and required paydown as each simulated sale is applied.
+- Entering a sale amount populates the matching profit target.
+- Entering a profit target populates the matching sale amount.
+- Clicking a chart point sets the sale amount target.
 
-Sale path results are cached by sale mode and dashboard filter selection. The cache is strictly an in-memory performance cache, keeps at most 16 entries, and fresh API data clears it.
+Sale amount and profit fields accept plain numbers or currency-formatted numbers. Empty or in-progress target text clears the linked target and hides target-specific breakdown rows.
 
-Companion sale series use gross-sale checkpoints from the main sale curve. Display-axis conversion assumes every companion point exists in the sale curve's gross-to-display lookup.
+Sale amount and profit targets are clamped to the available sale curve. Values below the curve minimum use the minimum point, and values above the curve maximum use the maximum point.
 
-Sale chart axes exposed in the UI as `Log X` and `Log Y` use D3 `scaleSymlog`, not true logarithmic scales. This is intentional so the same charting path can display zero values and negative realized profit.
+If a realized-profit target appears at more than one point on the sale curve, the planner uses the earliest matching point on the curve.
 
-Sale X-axis modes are `net` and `gross`.
+The companion sale charts show dollars sold and realized profit by account type, account name, sector exposure, ticker, and holding term. The companion carousel can be changed with previous/next buttons or by clicking a breakdown tab.
 
-Profit target lookup scans the sale curve from left to right and returns the first segment crossing the requested profit. This is intentional because the realized-profit curve can be non-monotonic; the UI chooses the earliest matching point on the sale curve rather than trying to infer user intent among multiple mathematically valid crossings.
+Target breakdowns show volume and realized profit at the linked target. Breakdowns are available by account type, account name, sector exposure, ticker, and holding term. The active breakdown and the second account/ticker sales list can each be resized vertically.
 
-The sale planner is intentionally disabled for partial security-sector filters because a holding can be sold only as a lot, not as an isolated sector slice. `CASH` sector selection is not part of that disabled-state check because it is not a sellable holding.
+The sale planner is disabled while security sector exposure is partially filtered, because holdings cannot be sold as sector slices. Selecting or excluding the `CASH` sector by itself does not disable the sale planner.
 
-Target inputs are text fields so formatted currency values can be displayed. Blank or in-progress input clears the optional target state; once a target is linked, the rest of the sale-target rendering treats the stored target values as numeric invariants. Internal sale transaction construction assumes the UI has already clamped target sale amounts to the curve domain.
+## Exposure Rebalance Planner
 
-## Rebalance Optimizer
+The Exposure rebalance planner lets the user set target sector allocations, including the `CASH` allocation. Sector targets auto-normalize to 100%. Individual sector targets can be locked during normalization.
 
-The rebalance optimizer builds a linear or mixed-integer optimization model in `app-rebalance-worker.js` and solves it with GLPK.
+The realization constraint row lets the user require a minimum gross realized gain and cap maximum gross realized loss. The default minimum gain is `$0`, and the default maximum loss is the full loaded sell universe's possible gross loss, so the defaults do not constrain the plan. `Reset limits` restores those defaults without changing sector targets.
 
-Dollar-valued LP variables and constraints are scaled into thousand-dollar units before they are sent to GLPK. Solver results are converted back to dollars before plans are rendered. This keeps coefficient magnitudes smaller and reduces numerical instability without changing the user-facing dollar semantics.
+Each target row can be edited as either a percentage or dollar amount. Dollar entries are converted to the equivalent percentage of the current rebalance exposure base before target normalization runs.
 
-The objective is lexicographic:
+The exposure target UI constrains security-sector targets to the `[0, 100]` range before updating the planner. The `CASH` target can be negative, which represents a leveraged cash allocation.
 
-1. Minimize total sector target residual.
-2. Minimize net realized gains subject to the best target residual.
-3. Minimize gross trade volume, meaning sell dollars plus buy dollars, subject to the best target residual, best net realized gains, and ticker side choices selected by the tax phase.
+Current sector percentages are shown in each target control. Achieved percentages and residual indicators are shown only after a rebalance result exists and the requested target allocation differs from current exposure.
 
-The tax objective is net realized gain, not gross realized gain and not positive realized gain. Realized losses can improve that objective.
+Trade eligibility is controlled separately for sell and buy universes. Sell eligibility works at the lot level. Buy eligibility is based on eligible tickers already present in the dashboard. A ticker can be bought or sold in a rebalance plan, but not both.
 
-Rebalance realization limits are hard LP constraints. `minGrossGain` adds a lower-bound constraint on the sum of positive realized-profit sell terms. `maxGrossLoss` adds an upper-bound constraint on the absolute value of negative realized-profit sell terms. Their defaults are `$0` for minimum gain and the full loaded sell universe's possible gross loss for maximum loss.
+Buy recommendations are ticker-level purchases, not account-specific purchases. Buy rows in the transaction table leave the account column blank.
 
-Buy variables are funded by sales and existing cash used in the plan. Sell variables are bounded by eligible lot value. The cash constraint requires sales plus existing cash used to fund buys, unused cash, and required margin paydown.
+The rebalance planner does not model transaction costs, wash-sale rules, destination accounts for buys, or account-specific placement preferences.
 
-Tickers that are both buy-eligible and sell-eligible are constrained to one side. Phase 1 and phase 2 use binary side variables. Phase 3 reuses the tax-optimal side choices from phase 2, which keeps the final volume minimization continuous while preserving the prior objective constraints. If phase 2 leaves an overlapping ticker unused, phase 3 also leaves that ticker unused. This makes phase 3 optimal conditional on the full phase-2 side assignment, not across every possible side assignment that may have the same target gap and net realized gain.
+The optimizer runs in phases:
 
-Margin constraints ensure sales from margin accounts reserve enough cash for required maintenance paydown. Purchases are accountless ticker-level rows and do not change maintenance requirements. `CASH` is a target exposure, not a buy/sell candidate: sells increase it, buys decrease it, and margin paydown leaves it unchanged because both cash and margin debt decline. If the eligible universe cannot hit target allocations exactly, residual under/over amounts are reported by sector and in aggregate.
+1. Minimize target gap.
+2. Minimize net realized gains without worsening the best target gap.
+3. Minimize gross trade volume, meaning sell dollars plus buy dollars, without worsening the best target gap or best net realized gains, using the buy/sell ticker directions selected by the tax phase.
 
-Rebalance transaction actions are `Sell` and `Buy`.
+Because the second phase minimizes net realized gains, realized losses can be favored when they improve the net result.
 
-Positive final rebalance cash generated by the transaction plan is reported as unallocated sale cash. Existing cash used by the transaction plan is reported separately. The cash constraint assumes sales plus existing cash used fund buys, unused cash, and required margin paydown.
+Realization constraints are hard constraints. Minimum gross gain is measured as the sum of positive realized profit from sell rows. Maximum gross loss is entered as a positive dollar amount and measured as the absolute value of realized losses from sell rows.
 
-Plan construction uses the internal `residual`, `tax`, and `trade` objective phases. Every model build passes an explicit limit handoff object. Constraint bounds use `fixed` and `upper`. An explicit `null` variable bound means "unbounded".
+Margin maintenance requirements are included when eligible margin-account lots are sold. Sale proceeds may be reserved for required margin paydown before remaining cash is available for purchases. Purchase rows do not model a destination account or new maintenance requirement.
 
-Phase handoffs use a dollar tolerance of `max($0.004, abs(limit) * 1e-9)` so GLPK numerical noise does not make the next lexicographic phase infeasible after an optimal previous phase.
+`CASH` is not a tradable ticker. Rebalance sells increase cash exposure, buys decrease cash exposure, and required margin paydown does not change cash exposure because cash and margin debt both decline. If the requested allocation lowers cash exposure, the plan can use existing cash for purchases.
 
-The worker posts phase progress and phase-result messages. Phase-result messages use `target` for phase 1 and `tax` for phase 2, and both include exposure-bearing plan objects. The main thread uses those messages to update elapsed status, residual indicators, achieved percentages, and net realized gain before the final transaction list is available. Phase 1 reports the achieved allocation from the target-gap solve immediately. That allocation may change after phase 2, because phase 2 selects a tax-optimal solution from the phase-1 target-gap optimum set.
+The dashboard shows elapsed time and interim achieved sector percentages before the final transaction list is available. The target-gap phase may annotate the sector controls with an achieved allocation that later changes after the tax phase, because residual-gap solutions can have multiple equally good target-gap results.
 
-The worker URL includes a manual version query string in `app-portfolio-views.js`. Bump that value whenever `app-rebalance-worker.js` changes so browsers do not keep running stale optimizer code.
+The final trade-volume phase does not reconsider whether an overlapping buy/sell ticker should switch sides after the tax phase. If the tax phase leaves such a ticker unused, the final phase leaves it unused too.
 
-## UI State
+If the eligible trade universe cannot exactly reach the requested targets, the dashboard reports a residual target gap and shows achieved percentages on the sector allocation controls. `Under` means achieved dollars below target in one or more sectors; `over` means achieved dollars above target in one or more sectors.
 
-Dashboard filters affect concentration charts, sale planner inputs, summary stats, and filtered lot rows. Trade filters affect only the rebalance optimizer.
+The rebalance summary reports gross trade volume as sell dollars plus buy dollars. The final transaction table lists action, account, ticker, dollars, shares, and realized profit, and can be resized vertically with its drag handle. While no plan with transactions exists, the table is hidden and a placeholder message explains that planned transactions will appear once a rebalance plan is calculated.
 
-The main layout is a desktop-first two-column shell. The left Filters sidebar owns the refresh button, section navigation, and global dashboard filter DOM. The sidebar can collapse to a narrow rail, can be horizontally resized while expanded, and its filter grid reflows with available sidebar width. The sidebar content is one scroll container below the sticky header, so section navigation and filter selections scroll together. Section navigation links use `data-section-nav` values that match main section IDs, and `app.js` updates the active nav item from scroll position.
+Resetting targets to current exposure returns the target allocation to the dashboard's current sector mix and clears target locks. If targets match current exposure, the planner produces a zero-transaction rebalance. Locking or unlocking a sector affects only future target normalization; it does not itself request a new optimization unless the target percentages change.
 
-Exposure target locks affect normalization only. Locking or unlocking without a target percentage change should not restart the optimizer.
+The sell and buy trade filter sections can be resized vertically on desktop and mobile. Search boxes inside those filters narrow long ticker or account lists without changing eligibility by themselves.
 
-Exposure targets are stored as percentages. Each target row also stores a presentation mode for percent or dollar entry; dollar input is converted to a percentage of the current rebalance exposure base before state is updated and normalization runs.
+## Robinhood Export Conversion
 
-Rebalance realization limits are initialized when dashboard data is applied. Filtering sell eligibility does not rewrite the realization-limit inputs; the initial maximum-loss default remains nonbinding when the sell universe is narrowed because narrowing can only reduce possible gross loss.
+The Robinhood export conversion section turns a GainsKeeper "Unrealized Lots" PDF (the tax-lot report Robinhood exports) into text that can be pasted into a spreadsheet. The user picks a PDF with the file input; the file is read and parsed entirely in the browser and is never uploaded. The output is a read-only text area of `\n`-separated rows, each a tab-separated `ticker`, `date`, `shares`, `per share basis` (the report's Cost/Share value), in the report's top-to-bottom order. The status line reports how many lots were converted, or the error if the PDF could not be read. A `Copy` button copies the output to the clipboard, falling back to selecting the text when the clipboard is unavailable. Rows that are not tax lots — the summary page, the repeated column headers, page footers, and the trailing Total row — are ignored. This section is independent of the dashboard's API data and works the same in demo mode.
 
-Exposure target input handling constrains user-entered security-sector values to `[0, 100]` before updating state. `CASH` can be negative and is constrained only by the shared `100%` upper bound. The normalization model, rebalance payload builder, and worker treat stored exposure targets as already UI-bounded numeric invariants and do not defensively clamp them again.
+## Filtered Lots
 
-Resetting exposure targets to current exposure also clears target locks. If target exposure equals current exposure, the worker returns a no-op plan without loading GLPK.
+The Filtered lots section always displays the individual lots currently included by the dashboard filters; virtualization keeps it responsive at any size.
 
-Custom resize-handle containers store heights in `state.resizeHeights` and are active on desktop and mobile. Dashboard filter groups, trade filters, sale target breakdowns, target sale rows, rebalance transactions, and filtered lot rows use the shared resize-handle behavior. Resize maximums are calculated from each inner scroll container's remaining `scrollHeight - clientHeight`; grouped resizers, such as the rebalance trade filters, use the largest remaining inner scroll amount.
+When enabled, the lot table shows security lots with account type, account name, sector label, ticker, term, shares, price, value, and profit. Cash pseudo-positions are not shown as tax-lot rows. The lot table can be resized vertically with its drag handle. Rendering is virtualized: the scrollbar reflects the full filtered list, but only the rows near the viewport exist in the document, so large filtered sets stay responsive.
+
+## Data Management
+
+The Data management section supports spreadsheet-backed account and lot maintenance without leaving the dashboard.
+
+The Accounts view is an autosaving grid of loaded accounts with editable name, type, cash and margin balances, and cash-flow checkboxes, plus read-only monthly interest and lot count. A search box above the grid filters rows to those whose name contains the typed text (the cash/equivalent and debt rows are matched the same way); non-matching rows are hidden rather than removed, so their pending edits and saves are unaffected. Clicking a sortable column header (name, type, cash balance, cash monthly interest, margin balance, margin monthly interest, or lots) sorts the whole grid and toggles ascending/descending on repeat clicks, the same way the Record-trades sell picker sorts; the default is classification order (accounts, then cash/equivalents, then debts). The grid sits in a table that can be resized vertically with a drag handle at its bottom edge like the other tables in the app. A balance field accepts a plain number or, prefixed with `=`, a spreadsheet formula written into the cell verbatim (e.g. `=1500+300`); the grid then shows the cell's evaluated value, so a formula is write-only from the grid's view and a formula that errors in the sheet surfaces as a broken balance to be corrected. Edits save automatically: changes are debounced so saves do not fire per keystroke, only one save request is in flight at a time, and a save that finishes while the user is still editing waits for the editing pause before the next save fires. The status line above the tabs shows `Unsaved changes…`, `Saving…`, `Saved.`, or the save error; a failed save retries automatically one debounce interval after its error response, pushed later by further editing.
+
+Deletes and creates do not block the grid. A row chosen for deletion greys out and locks while everything else stays editable, and disappears when the server confirms. Creating an account adds its row to the grid immediately — editable right away, with edits queued behind the create — clears the name field, and leaves the Create card enabled so further creations can be queued. Optimistic rows survive intervening saves and are never written to the local cache; reloading before a create completes loses it, like any unsaved edit. Everything runs through the same serialized save pipeline as edits. Monthly interest is maintained in the spreadsheet and is never written back by the dashboard. Changing an account's type between Individual and tax-advantaged restructures the account sheet's lot table columns; converted lots keep ticker and shares, and date/basis cells added by an Individual conversion start empty for the user to fill in. A labeled Create account card lives on its own `Create account` tab beside `Accounts`; new accounts are created from the selected account-type template, using the account name as the new sheet tab name, and immediately appear in dashboard and trade-eligibility filters. Deleting an account hard-deletes the account sheet after confirmation.
+
+Rows from the `cash+equivalents` and `other debt` sheets appear below the account rows in the same grid with the same autosave behavior, typed as the plain text `Cash/equivalent` and `Debt`. Their margin and lot cells are empty. Editable fields are the name, the balance, and the cash-flow checkbox; monthly interest is read-only like account interest. Debt rows display their balance and interest as negative numbers — the sheets store positive magnitudes, and the dashboard flips the sign both ways. Each row has a Delete action that removes the sheet row after confirmation. The Create account card also offers the `Cash/equivalent` and `Debt` types, which append a named row to the corresponding sheet instead of creating a sheet tab; the new row starts with an empty balance and interest, which load as zero.
+
+The Add purchase view logs an expense to the Purchases sheet. It takes a date (defaulting to today), an amount, and optional categories separated by `|`. The amount is either a plain number or an expression beginning with `=` that the sheet evaluates; for an `=` expression the form previews the evaluated value live and flags an expression it cannot compute in red, while still allowing submission. Saving appends a row — date, amount (stored as a value or a formula), and each category in its own column — and the FIRE monthly purchasing total updates from the sheet's recomputed average. The view is inert in demo mode like the other mutations.
+
+The Record trades view records buys and sells. The `Settle with account cash` toggle controls whether balances move: when on, a buy drains the buy account's cash balance first and borrows any remainder by increasing its margin balance, and a sell's per-account volume first pays down that account's margin balance with the remainder credited to its cash balance; when off, only the lots change. Buys target the selected account and take a ticker, share quantity, total dollar volume, and — for Individual accounts — a purchase date defaulting to today; the per-share basis is volume divided by shares. In buy mode the form spans the panel with fields laid out in columns; in sell mode the form sits beside the lot picker.
+
+The sell lot picker lists lots from every loaded account, gated by all of the dashboard sidebar filters: account type, account name, ticker, term, and sector exposure. A lot qualifies under the sector filter when any of its sector components is selected. Each row shows the lot's account (the term column is omitted — the sidebar term filter covers it); the account dropdown applies only to buys. Rows keep a constant height and fixed column positions whether or not a lot is selected or the table is scrolled. Column headers sort the list — clicking toggles ascending/descending, and the default is spreadsheet order (classification order across accounts, sheet row order within one). Lots are selected with per-row checkboxes and a single Select all / Deselect all toggle that operates on the currently visible lots; selection state lives outside the table, so Select all covers lots that are scrolled out of view. The picker is virtualized the same way as the filtered-lot table, so thousands of lots stay responsive. Changing the sidebar filters deselects lots that are no longer visible.
+
+Selecting a lot turns its Shares cell into an editable quantity (defaulting to the full lot) and adds an editable per-lot Volume field. The volume defaults to the sold shares times the current price and tracks share edits until the user edits the volume directly, after which it is theirs. Whatever share quantity a lot shows at submit time is what gets sold: the full sheet amount removes the lot row, less subtracts. A sale may span accounts — lots are grouped per account behind the scenes, each account's volumes are summed for its cash settlement, and the summary shows the combined lots, shares, and dollars. A cross-account transfer can be recorded as a sell and a buy with settlement off.

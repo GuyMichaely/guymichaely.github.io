@@ -137,6 +137,10 @@ const state = {
     sellDrafts: new Map(),
     sort: { key: null, direction: 1 }
   },
+  accountManage: {
+    search: "",
+    sort: { key: null, direction: 1 }
+  },
   saleTargetSource: "amount",
   saleAxis: {
     xSymlog: false,

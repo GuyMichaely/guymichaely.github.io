@@ -27,12 +27,12 @@ function getDemoDashboardData() {
       {
         accountName: "Demo Brokerage", accountType: "Individual", accountTypeKey: "individual",
         holdings: [
-          { rowNumber: 3, ticker: "AAPL", term: "Long-term", date: "2022-03-14T05:00:00.000Z", shares: 40, perShareBasis: 162, value: 9200, expectedGrowth: null },
-          { rowNumber: 4, ticker: "NVDA", term: "Long-term", date: "2021-08-02T05:00:00.000Z", shares: 120, perShareBasis: 21, value: 15600, expectedGrowth: null },
-          { rowNumber: 5, ticker: "NVDA", term: "Short-term", date: "2025-11-20T05:00:00.000Z", shares: 30, perShareBasis: 138, value: 3900, expectedGrowth: null },
-          { rowNumber: 6, ticker: "VOO", term: "Long-term", date: "2023-01-09T05:00:00.000Z", shares: 55, perShareBasis: 352, value: 28050, expectedGrowth: null },
-          { rowNumber: 7, ticker: "TSLA", term: "Short-term", date: "2025-09-15T05:00:00.000Z", shares: 20, perShareBasis: 291, value: 5000, expectedGrowth: null },
-          { rowNumber: 8, ticker: "AMZN", term: "Long-term", date: "2022-06-27T05:00:00.000Z", shares: 35, perShareBasis: 109, value: 6475, expectedGrowth: null },
+          { rowNumber: 3, ticker: "AAPL", term: "Long-term", date: "2022-03-14T05:00:00.000Z", shares: 40, perShareBasis: 162, expectedGrowth: null },
+          { rowNumber: 4, ticker: "NVDA", term: "Long-term", date: "2021-08-02T05:00:00.000Z", shares: 120, perShareBasis: 21, expectedGrowth: null },
+          { rowNumber: 5, ticker: "NVDA", term: "Short-term", date: "2025-11-20T05:00:00.000Z", shares: 30, perShareBasis: 138, expectedGrowth: null },
+          { rowNumber: 6, ticker: "VOO", term: "Long-term", date: "2023-01-09T05:00:00.000Z", shares: 55, perShareBasis: 352, expectedGrowth: null },
+          { rowNumber: 7, ticker: "TSLA", term: "Short-term", date: "2025-09-15T05:00:00.000Z", shares: 20, perShareBasis: 291, expectedGrowth: null },
+          { rowNumber: 8, ticker: "AMZN", term: "Long-term", date: "2022-06-27T05:00:00.000Z", shares: 35, perShareBasis: 109, expectedGrowth: null },
         ],
         financing: [
           { kind: "cash", balance: 4200, monthlyInterest: 14, contributesToCashFlow: true },
@@ -43,9 +43,9 @@ function getDemoDashboardData() {
       {
         accountName: "Demo Roth IRA", accountType: "Roth", accountTypeKey: "roth",
         holdings: [
-          { rowNumber: 3, ticker: "QQQ", term: "Long-term", shares: 65, value: 31200, expectedGrowth: null },
-          { rowNumber: 4, ticker: "SCHD", term: "Long-term", shares: 300, value: 8400, expectedGrowth: null },
-          { rowNumber: 5, ticker: "VOO", term: "Long-term", shares: 28, value: 14280, expectedGrowth: null },
+          { rowNumber: 3, ticker: "QQQ", term: "Long-term", shares: 65, expectedGrowth: null },
+          { rowNumber: 4, ticker: "SCHD", term: "Long-term", shares: 300, expectedGrowth: null },
+          { rowNumber: 5, ticker: "VOO", term: "Long-term", shares: 28, expectedGrowth: null },
         ],
         financing: [
           { kind: "cash", balance: 850, monthlyInterest: 2.1, contributesToCashFlow: true },
@@ -56,9 +56,9 @@ function getDemoDashboardData() {
       {
         accountName: "Demo 401k", accountType: "Pre-tax", accountTypeKey: "traditional",
         holdings: [
-          { rowNumber: 3, ticker: "VOO", term: "Short-term", shares: 90, value: 45900, expectedGrowth: null },
-          { rowNumber: 4, ticker: "BND", term: "Short-term", shares: 140, value: 10220, expectedGrowth: null },
-          { rowNumber: 5, ticker: "VNQ", term: "Short-term", shares: 60, value: 5100, expectedGrowth: null },
+          { rowNumber: 3, ticker: "VOO", term: "Short-term", shares: 90, expectedGrowth: null },
+          { rowNumber: 4, ticker: "BND", term: "Short-term", shares: 140, expectedGrowth: null },
+          { rowNumber: 5, ticker: "VNQ", term: "Short-term", shares: 60, expectedGrowth: null },
         ],
         financing: [
           { kind: "cash", balance: 0, monthlyInterest: 0, contributesToCashFlow: false },

@@ -66,6 +66,25 @@ function initializeDataManagement() {
     flushManagementAutosave();
   });
 
+  document.getElementById("managementAccountSearch").addEventListener("input", event => {
+    state.accountManage.search = event.target.value;
+    rerenderAccountRowsPreservingEdits();
+  });
+
+  document.getElementById("managementAccountsHead").addEventListener("click", event => {
+    const header = event.target.closest("[data-account-sort]");
+    if (!header) return;
+
+    const key = header.dataset.accountSort;
+    if (state.accountManage.sort.key === key) {
+      state.accountManage.sort.direction *= -1;
+    } else {
+      state.accountManage.sort = { key, direction: 1 };
+    }
+
+    rerenderAccountRowsPreservingEdits();
+  });
+
   document.getElementById("tradeSideTabs").addEventListener("click", event => {
     const button = event.target.closest("[data-trade-side]");
     if (!button) return;
@@ -507,7 +526,7 @@ function buildManagementRowRequest(rowKey, row) {
       action: "updateCashEquivalent",
       originalAccountName,
       accountName,
-      balance: Number(row.querySelector("[data-cash-balance]").value),
+      balance: managementBalanceValue(row.querySelector("[data-cash-balance]")),
       contributesToCashFlow: row.querySelector("[data-cash-contributes]").checked,
     };
   }
@@ -517,7 +536,7 @@ function buildManagementRowRequest(rowKey, row) {
       action: "updateOtherDebt",
       originalAccountName,
       accountName,
-      balance: -Number(row.querySelector("[data-cash-balance]").value),
+      balance: managementBalanceValue(row.querySelector("[data-cash-balance]")),
       contributesToCashFlow: row.querySelector("[data-cash-contributes]").checked,
     };
   }
@@ -530,16 +549,22 @@ function buildManagementRowRequest(rowKey, row) {
     financing: [
       {
         kind: "cash",
-        balance: Number(row.querySelector("[data-cash-balance]").value),
+        balance: managementBalanceValue(row.querySelector("[data-cash-balance]")),
         contributesToCashFlow: row.querySelector("[data-cash-contributes]").checked,
       },
       {
         kind: "margin",
-        balance: Number(row.querySelector("[data-margin-balance]").value),
+        balance: managementBalanceValue(row.querySelector("[data-margin-balance]")),
         contributesToCashFlow: row.querySelector("[data-margin-contributes]").checked,
       },
     ],
   };
+}
+
+
+function managementBalanceValue(input) {
+  const value = input.value;
+  return value.startsWith("=") ? value : Number(value);
 }
 
 
@@ -659,38 +684,96 @@ function renderManagementTabs() {
 
 function renderManagementPanels() {
   document.getElementById("managementAccountsPanel").hidden = state.managementTab !== "accounts";
+  document.getElementById("managementCreatePanel").hidden = state.managementTab !== "create";
   document.getElementById("managementTradePanel").hidden = state.managementTab !== "trade";
   document.getElementById("managementPurchasePanel").hidden = state.managementTab !== "purchase";
 }
 
 
-function renderManagementAccountRows() {
+function buildManagementRowModels() {
   const accountRows = state.accounts.map(account => {
     const cash = getManagementFinancing(account, "cash");
     const margin = getManagementFinancing(account, "margin");
-    return `
+    return {
+      name: account.accountName,
+      sortValues: {
+        name: account.accountName,
+        type: account.accountType,
+        cashBalance: cash.balance,
+        cashInterest: cash.monthlyInterest,
+        marginBalance: margin.balance,
+        marginInterest: margin.monthlyInterest,
+        lots: account.holdings.length,
+      },
+      html: `
       <tr data-management-row-key="${escapeHtml(managementRowKey("account", account.accountName))}">
         <td><input data-account-name-input type="text" value="${escapeHtml(account.accountName)}"></td>
         <td>${renderAccountTypeSelect("data-account-type-input", account.accountTypeKey)}</td>
-        <td class="num"><input data-cash-balance type="number" step="any" value="${formatPlainNumber(cash.balance)}"></td>
+        <td class="num"><input data-cash-balance type="text" inputmode="decimal" value="${formatPlainNumber(cash.balance)}"></td>
         <td class="num">${formatCurrency(cash.monthlyInterest)}</td>
         <td><input data-cash-contributes type="checkbox" ${cash.contributesToCashFlow ? "checked" : ""}></td>
-        <td class="num"><input data-margin-balance type="number" step="any" value="${formatPlainNumber(margin.balance)}"></td>
+        <td class="num"><input data-margin-balance type="text" inputmode="decimal" value="${formatPlainNumber(margin.balance)}"></td>
         <td class="num">${formatCurrency(margin.monthlyInterest)}</td>
         <td><input data-margin-contributes type="checkbox" ${margin.contributesToCashFlow ? "checked" : ""}></td>
         <td class="num">${account.holdings.length.toLocaleString()}</td>
         <td><button type="button" data-management-account-action="delete">Delete</button></td>
       </tr>
-    `;
+    `,
+    };
   });
 
   const cashEquivalentRows = state.cashEquivalents.map(row =>
-    balanceRowHtml("cashEq", "Cash/equivalent", row.accountName, row.balance, row.monthlyInterest, row.contributesToCashFlow));
+    balanceRowModel("cashEq", "Cash/equivalent", row.accountName, row.balance, row.monthlyInterest, row.contributesToCashFlow));
 
   const debtRows = state.otherDebts.map(row =>
-    balanceRowHtml("debt", "Debt", row.name, -row.balance, -row.monthlyInterest, row.contributesToCashFlow));
+    balanceRowModel("debt", "Debt", row.name, -row.balance, -row.monthlyInterest, row.contributesToCashFlow));
 
-  document.getElementById("managementAccountRows").innerHTML = [...accountRows, ...cashEquivalentRows, ...debtRows].join("");
+  return [...accountRows, ...cashEquivalentRows, ...debtRows];
+}
+
+
+const ACCOUNT_SORT_VALUE = {
+  name: row => row.sortValues.name,
+  type: row => row.sortValues.type,
+  cashBalance: row => row.sortValues.cashBalance,
+  cashInterest: row => row.sortValues.cashInterest,
+  marginBalance: row => row.sortValues.marginBalance,
+  marginInterest: row => row.sortValues.marginInterest,
+  lots: row => row.sortValues.lots,
+};
+
+const ACCOUNT_SORT_LABELS = {
+  name: "Account name",
+  type: "Type",
+  cashBalance: "Cash balance",
+  cashInterest: "Cash monthly interest",
+  marginBalance: "Margin balance",
+  marginInterest: "Margin monthly interest",
+  lots: "Lots",
+};
+
+
+function sortManagementRowModels(rows) {
+  const sort = state.accountManage.sort;
+  if (sort.key === null) return rows;
+
+  const sortValue = ACCOUNT_SORT_VALUE[sort.key];
+  // Array.prototype.sort is stable, so equal rows keep their default classification order.
+  return rows.sort((a, b) => {
+    const valueA = sortValue(a);
+    const valueB = sortValue(b);
+    const order = typeof valueA === "string"
+      ? valueA.localeCompare(valueB, undefined, { numeric: true })
+      : (valueA === null ? -Infinity : valueA) - (valueB === null ? -Infinity : valueB);
+    return order * sort.direction;
+  });
+}
+
+
+function renderManagementAccountRows() {
+  const rows = sortManagementRowModels(buildManagementRowModels());
+
+  document.getElementById("managementAccountRows").innerHTML = rows.map(row => row.html).join("");
 
   for (const rowKey of pendingDeleteRowKeys()) {
     const row = getManagementRow(rowKey);
@@ -698,6 +781,52 @@ function renderManagementAccountRows() {
     managementRowFields(row).forEach(field => { field.disabled = true; });
     row.querySelector("button").disabled = true;
   }
+
+  applyManagementSearch();
+  renderManagementSortIndicators();
+}
+
+
+function applyManagementSearch() {
+  const query = state.accountManage.search.trim().toLowerCase();
+  if (query === "") return;
+
+  for (const row of document.querySelectorAll("#managementAccountRows tr")) {
+    row.hidden = !managementRowKeyName(row.dataset.managementRowKey).toLowerCase().includes(query);
+  }
+}
+
+
+function renderManagementSortIndicators() {
+  document.querySelectorAll("#managementAccountsHead [data-account-sort]").forEach(header => {
+    const key = header.dataset.accountSort;
+    const arrow = state.accountManage.sort.key === key ? (state.accountManage.sort.direction === 1 ? " ▲" : " ▼") : "";
+    header.textContent = ACCOUNT_SORT_LABELS[key] + arrow;
+  });
+}
+
+
+function rerenderAccountRowsPreservingEdits() {
+  const editState = captureManagementEditState();
+  renderManagementAccountRows();
+  restoreManagementEditState(editState);
+}
+
+
+function balanceRowModel(kind, typeLabel, name, balance, monthlyInterest, contributesToCashFlow) {
+  return {
+    name,
+    sortValues: {
+      name,
+      type: typeLabel,
+      cashBalance: balance,
+      cashInterest: monthlyInterest,
+      marginBalance: null,
+      marginInterest: null,
+      lots: null,
+    },
+    html: balanceRowHtml(kind, typeLabel, name, balance, monthlyInterest, contributesToCashFlow),
+  };
 }
 
 
@@ -706,7 +835,7 @@ function balanceRowHtml(kind, typeLabel, name, balance, monthlyInterest, contrib
     <tr data-management-row-key="${escapeHtml(managementRowKey(kind, name))}">
       <td><input data-account-name-input type="text" value="${escapeHtml(name)}"></td>
       <td>${typeLabel}</td>
-      <td class="num"><input data-cash-balance type="number" step="any" value="${formatPlainNumber(balance)}"></td>
+      <td class="num"><input data-cash-balance type="text" inputmode="decimal" value="${formatPlainNumber(balance)}"></td>
       <td class="num">${formatCurrency(monthlyInterest)}</td>
       <td><input data-cash-contributes type="checkbox" ${contributesToCashFlow ? "checked" : ""}></td>
       <td></td>
