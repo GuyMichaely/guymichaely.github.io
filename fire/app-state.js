@@ -2,6 +2,8 @@ const API_URL_KEY = "financialDash.apiUrl";
 const DASHBOARD_DATA_CACHE_KEY = "financialDash.apiPayload";
 const DEMO_MODE_KEY = "financialDash.demoMode";
 const DEMO_PASSWORD_KEY = "financialDash.demoExitPassword";
+const PRIVATE_MODE_KEY = "financialDash.privateMode";
+const PRIVATE_PASSWORD_KEY = "financialDash.privateExitPassword";
 
 const FILTERS = [
   { key: "accountType", label: "Account type" },
@@ -124,6 +126,7 @@ const state = {
   managementTab: "accounts",
   managementBusy: false,
   demoMode: false,
+  privateMode: false,
   accountAutosave: {
     dirtyRowKeys: new Set(),
     pendingOps: [],

@@ -1,4 +1,5 @@
 function formatCurrencyInputNumber(value) {
+  if (state.privateMode) return "";
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -34,6 +35,12 @@ function sum(values) {
 
 
 function formatCurrency(value) {
+  if (state.privateMode) return "";
+  return formatPrice(value);
+}
+
+
+function formatPrice(value) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -50,6 +57,7 @@ function formatNullableCurrency(value) {
 
 
 function formatCompactCurrency(value) {
+  if (state.privateMode) return "";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -60,6 +68,7 @@ function formatCompactCurrency(value) {
 
 
 function formatCompactCurrencyPrecision(value) {
+  if (state.privateMode) return "";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -86,6 +95,7 @@ function formatPercentPrecision(value) {
 
 
 function formatNullablePercent(value) {
+  if (state.privateMode) return "";
   if (value === null) return "—";
   return new Intl.NumberFormat("en-US", {
     style: "percent",
@@ -103,6 +113,7 @@ function formatPercentNumber(value) {
 
 
 function formatShares(value) {
+  if (state.privateMode) return "";
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 6
   }).format(value);

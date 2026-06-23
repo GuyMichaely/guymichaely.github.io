@@ -151,6 +151,16 @@ function renderRebalanceRealizationLimits() {
   const minGainInput = document.getElementById("rebalanceMinGrossGain");
   const maxLossInput = document.getElementById("rebalanceMaxGrossLoss");
 
+  minGainInput.disabled = state.privateMode;
+  maxLossInput.disabled = state.privateMode;
+
+  if (state.privateMode) {
+    minGainInput.value = "";
+    minGainInput.removeAttribute("max");
+    maxLossInput.value = "";
+    return;
+  }
+
   minGainInput.value = formatPlainNumber(state.rebalanceRealizationLimits.minGrossGain);
   minGainInput.max = formatPlainNumber(getFullSellUniverseMaxGrossGain());
   maxLossInput.value = formatPlainNumber(state.rebalanceRealizationLimits.maxGrossLoss);
@@ -169,7 +179,7 @@ function renderExposureTargets() {
 
   for (const [index, sector] of state.exposureTargetOrder.entries()) {
     const currentPct = currentPercents[sector];
-    const inputMode = state.exposureTargetInputModes[sector];
+    const inputMode = effectiveExposureInputMode(sector);
     const inputValue = getExposureTargetInputValue(sector, targetBase);
     const inputMax = getExposureTargetInputMax(sector, targetBase);
     const inputLabel = inputMode === "dollars" ? "dollars" : "percent";
@@ -197,7 +207,7 @@ function renderExposureTargets() {
         <span class="exposure-target-name" title="${escapeHtml(sector)}">${escapeHtml(sector)}</span>
       </span>
       <span class="exposure-target-input-mode" role="group" aria-label="${escapeHtml(sector)} target input mode">
-        <button type="button" data-target-mode="dollars" class="${inputMode === "dollars" ? "active" : ""}" aria-pressed="${inputMode === "dollars" ? "true" : "false"}">$</button>
+        <button type="button" data-target-mode="dollars" class="${inputMode === "dollars" ? "active" : ""}" aria-pressed="${inputMode === "dollars" ? "true" : "false"}"${state.privateMode ? " disabled" : ""}>$</button>
         <button type="button" data-target-mode="percent" class="${inputMode === "percent" ? "active" : ""}" aria-pressed="${inputMode === "percent" ? "true" : "false"}">%</button>
       </span>
       <input type="number" ${minAttribute} max="${formatPlainNumber(inputMax)}" step="any" value="${formatPlainNumber(inputValue)}" aria-label="${escapeHtml(sector)} target ${inputLabel}">
@@ -256,24 +266,29 @@ function getExposureTargetBase() {
   return sum(Object.values(exposure));
 }
 
+// Private mode forces percent display so the dollars view never reveals magnitudes.
+function effectiveExposureInputMode(sector) {
+  return state.privateMode ? "percent" : state.exposureTargetInputModes[sector];
+}
+
 function getExposureTargetInputValue(sector, targetBase) {
-  return state.exposureTargetInputModes[sector] === "dollars"
+  return effectiveExposureInputMode(sector) === "dollars"
     ? targetBase * state.exposureTargets[sector] / 100
     : state.exposureTargets[sector];
 }
 
 function getExposureTargetPercentFromInputValue(sector, value, targetBase) {
-  return state.exposureTargetInputModes[sector] === "dollars"
+  return effectiveExposureInputMode(sector) === "dollars"
     ? value / targetBase * 100
     : value;
 }
 
 function getExposureTargetInputMax(sector, targetBase) {
-  return state.exposureTargetInputModes[sector] === "dollars" ? targetBase : 100;
+  return effectiveExposureInputMode(sector) === "dollars" ? targetBase : 100;
 }
 
 function getExposureTargetInputTolerance(sector) {
-  return state.exposureTargetInputModes[sector] === "dollars" ? MONEY_EPSILON : PERCENT_POINT_EPSILON;
+  return effectiveExposureInputMode(sector) === "dollars" ? MONEY_EPSILON : PERCENT_POINT_EPSILON;
 }
 
 function getBoundedExposureTargetValue(sector, value) {
@@ -302,7 +317,7 @@ function syncExposureTargetInputs(activeSector) {
   document.querySelectorAll(".exposure-target-row[data-sector]").forEach(row => {
     const sector = row.dataset.sector;
     const input = row.querySelector("input");
-    const inputMode = state.exposureTargetInputModes[sector];
+    const inputMode = effectiveExposureInputMode(sector);
     if (sector !== activeSector) {
       input.value = formatPlainNumber(getExposureTargetInputValue(sector, targetBase));
     }

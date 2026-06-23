@@ -91,7 +91,7 @@ function lotRowHtml(lot) {
     <td>${escapeHtml(lot.ticker)}</td>
     <td>${escapeHtml(lot.term)}</td>
     <td class="num">${formatShares(lot.shares)}</td>
-    <td class="num">${formatCurrency(lot.price)}</td>
+    <td class="num">${formatPrice(lot.price)}</td>
     <td class="num">${formatCurrency(lot.value)}</td>
     <td class="num">${formatCurrency(lot.profit)}</td>
     </tr>

@@ -709,10 +709,10 @@ function buildManagementRowModels() {
       <tr data-management-row-key="${escapeHtml(managementRowKey("account", account.accountName))}">
         <td><input data-account-name-input type="text" value="${escapeHtml(account.accountName)}"></td>
         <td>${renderAccountTypeSelect("data-account-type-input", account.accountTypeKey)}</td>
-        <td class="num"><input data-cash-balance type="text" inputmode="decimal" value="${formatPlainNumber(cash.balance)}"></td>
+        <td class="num"><input data-cash-balance type="text" inputmode="decimal" value="${state.privateMode ? "" : formatPlainNumber(cash.balance)}"${state.privateMode ? " disabled" : ""}></td>
         <td class="num">${formatCurrency(cash.monthlyInterest)}</td>
         <td><input data-cash-contributes type="checkbox" ${cash.contributesToCashFlow ? "checked" : ""}></td>
-        <td class="num"><input data-margin-balance type="text" inputmode="decimal" value="${formatPlainNumber(margin.balance)}"></td>
+        <td class="num"><input data-margin-balance type="text" inputmode="decimal" value="${state.privateMode ? "" : formatPlainNumber(margin.balance)}"${state.privateMode ? " disabled" : ""}></td>
         <td class="num">${formatCurrency(margin.monthlyInterest)}</td>
         <td><input data-margin-contributes type="checkbox" ${margin.contributesToCashFlow ? "checked" : ""}></td>
         <td class="num">${account.holdings.length.toLocaleString()}</td>
@@ -835,7 +835,7 @@ function balanceRowHtml(kind, typeLabel, name, balance, monthlyInterest, contrib
     <tr data-management-row-key="${escapeHtml(managementRowKey(kind, name))}">
       <td><input data-account-name-input type="text" value="${escapeHtml(name)}"></td>
       <td>${typeLabel}</td>
-      <td class="num"><input data-cash-balance type="text" inputmode="decimal" value="${formatPlainNumber(balance)}"></td>
+      <td class="num"><input data-cash-balance type="text" inputmode="decimal" value="${state.privateMode ? "" : formatPlainNumber(balance)}"${state.privateMode ? " disabled" : ""}></td>
       <td class="num">${formatCurrency(monthlyInterest)}</td>
       <td><input data-cash-contributes type="checkbox" ${contributesToCashFlow ? "checked" : ""}></td>
       <td></td>
@@ -966,12 +966,16 @@ function tradeLotRowHtml(lot) {
       <td>${escapeHtml(lot.accountName)}</td>
       <td>${escapeHtml(lot.ticker)}</td>
       <td class="num">${draft
-        ? `<input data-lot-shares type="number" min="0" max="${formatPlainNumber(lot.shares)}" step="any" value="${draft.shares}">`
+        ? (state.privateMode
+          ? `<input data-lot-shares type="number" step="any" value="" disabled>`
+          : `<input data-lot-shares type="number" min="0" max="${formatPlainNumber(lot.shares)}" step="any" value="${draft.shares}">`)
         : formatShares(lot.shares)}</td>
       <td class="num">${lot.perShareBasis === undefined ? "" : formatCurrency(lot.perShareBasis)}</td>
       <td>${lot.date === undefined ? "" : escapeHtml(dateInputValue(lot.date))}</td>
       <td class="num">${draft
-        ? `<input data-lot-volume type="number" min="0" step="any" value="${draft.volume}">`
+        ? (state.privateMode
+          ? `<input data-lot-volume type="number" step="any" value="" disabled>`
+          : `<input data-lot-volume type="number" min="0" step="any" value="${draft.volume}">`)
         : ""}</td>
     </tr>
   `;

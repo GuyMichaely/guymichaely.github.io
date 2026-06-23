@@ -116,7 +116,8 @@ function updateSaleMarginPaydownSummary() {
 
 
 function setSaleTargetInputsEnabled(enabled) {
-  document.getElementById("saleAmountInput").disabled = !enabled;
-  document.getElementById("saleProfitInput").disabled = !enabled;
-  document.getElementById("saleMarginPaydownInput").disabled = !enabled;
+  const off = !enabled || state.privateMode;
+  document.getElementById("saleAmountInput").disabled = off;
+  document.getElementById("saleProfitInput").disabled = off;
+  document.getElementById("saleMarginPaydownInput").disabled = off;
 }

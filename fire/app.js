@@ -199,6 +199,45 @@ function updateDemoModeUi() {
   }
 }
 
+document.getElementById("privateModeButton").addEventListener("click", () => {
+  if (!state.privateMode) {
+    const password = window.prompt("Set a password required to exit private mode:");
+    window.localStorage.setItem(PRIVATE_PASSWORD_KEY, password);
+    window.localStorage.setItem(PRIVATE_MODE_KEY, "true");
+    state.privateMode = true;
+    updatePrivateModeUi();
+    render();
+    renderDataManagement();
+    return;
+  }
+
+  const storedPassword = window.localStorage.getItem(PRIVATE_PASSWORD_KEY);
+  if (storedPassword !== null) {
+    const entry = window.prompt("Enter the private mode exit password:");
+    if (entry !== storedPassword) {
+      window.alert("Wrong password.");
+      return;
+    }
+  }
+
+  window.localStorage.removeItem(PRIVATE_MODE_KEY);
+  window.localStorage.removeItem(PRIVATE_PASSWORD_KEY);
+  state.privateMode = false;
+  updatePrivateModeUi();
+  render();
+  renderDataManagement();
+});
+
+function updatePrivateModeUi() {
+  const button = document.getElementById("privateModeButton");
+  button.textContent = state.privateMode ? "Exit private mode" : "Private mode";
+  button.classList.toggle("demo-active", state.privateMode);
+
+  const fireRateInput = document.getElementById("fireRateInput");
+  fireRateInput.disabled = state.privateMode;
+  fireRateInput.value = state.privateMode ? "" : state.fireRatePercent;
+}
+
 function initializeSectionNavigation() {
   const links = [...document.querySelectorAll("[data-section-nav]")];
   const sections = links.map(link => document.getElementById(link.dataset.sectionNav));
@@ -270,4 +309,6 @@ initializeSectionNavigation();
 initializeDataManagement();
 state.demoMode = window.localStorage.getItem(DEMO_MODE_KEY) === "true";
 updateDemoModeUi();
+state.privateMode = window.localStorage.getItem(PRIVATE_MODE_KEY) === "true";
+updatePrivateModeUi();
 loadData();
