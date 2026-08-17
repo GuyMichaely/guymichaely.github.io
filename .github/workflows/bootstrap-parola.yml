@@ -19,6 +19,8 @@ jobs:
 
       - name: Reconstruct Parola source
         run: |
+          # Repair a single transfer character in bootstrap chunk 6, then rebuild the checkpoint ZIP.
+          sed -i 's/UEsDBBQAAAAICACwDRFd/UEsDBBQAAAAACACwDRFd/' .parola-bootstrap/source.b64.06
           cat .parola-bootstrap/source.b64.* | base64 --decode > /tmp/parola.zip
           rm -rf /tmp/parola-unpack parola-src
           mkdir -p /tmp/parola-unpack
