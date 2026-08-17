@@ -1,0 +1,669 @@
+[
+  {
+    "id": 13,
+    "type": "noun",
+    "english": "hat",
+    "italian": "cappello",
+    "details": {
+      "gender": "masculine",
+      "singular": "cappello",
+      "plural": "cappelli",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il cappello",
+      "definitePlural": "i cappelli",
+      "indefinite": "un cappello"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1"
+    ]
+  },
+  {
+    "id": 14,
+    "type": "noun",
+    "english": "dress",
+    "italian": "vestito",
+    "details": {
+      "gender": "masculine",
+      "singular": "vestito",
+      "plural": "vestiti",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il vestito",
+      "definitePlural": "i vestiti",
+      "indefinite": "un vestito"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 15,
+    "type": "adjective",
+    "english": "cute",
+    "italian": "carino",
+    "details": {
+      "masculineSingular": "carino",
+      "feminineSingular": "carina",
+      "masculinePlural": "carini",
+      "femininePlural": "carine"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 16,
+    "type": "adjective",
+    "english": "red",
+    "italian": "rosso",
+    "details": {
+      "masculineSingular": "rosso",
+      "feminineSingular": "rossa",
+      "masculinePlural": "rossi",
+      "femininePlural": "rosse"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 17,
+    "type": "adjective",
+    "english": "black",
+    "italian": "nero",
+    "details": {
+      "masculineSingular": "nero",
+      "feminineSingular": "nera",
+      "masculinePlural": "neri",
+      "femininePlural": "nere"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 18,
+    "type": "adjective",
+    "english": "white",
+    "italian": "bianco",
+    "details": {
+      "masculineSingular": "bianco",
+      "feminineSingular": "bianca",
+      "masculinePlural": "bianci",
+      "femininePlural": "biance"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 19,
+    "type": "adjective",
+    "english": "cheap",
+    "italian": "economico",
+    "details": {
+      "masculineSingular": "economico",
+      "feminineSingular": "economica",
+      "masculinePlural": "economici",
+      "femininePlural": "economice"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 20,
+    "type": "adjective",
+    "english": "yellow",
+    "italian": "giallo",
+    "details": {
+      "masculineSingular": "giallo",
+      "feminineSingular": "gialla",
+      "masculinePlural": "gialli",
+      "femininePlural": "gialle"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 21,
+    "type": "adjective",
+    "english": "far away",
+    "italian": "lontano",
+    "details": {
+      "masculineSingular": "lontano",
+      "feminineSingular": "lontana",
+      "masculinePlural": "lontani",
+      "femininePlural": "lontane"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 22,
+    "type": "adjective",
+    "english": "cold",
+    "italian": "freddo",
+    "details": {
+      "masculineSingular": "freddo",
+      "feminineSingular": "fredda",
+      "masculinePlural": "freddi",
+      "femininePlural": "fredde"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 23,
+    "type": "adjective",
+    "english": "new",
+    "italian": "nuovo",
+    "details": {
+      "masculineSingular": "nuovo",
+      "feminineSingular": "nuova",
+      "masculinePlural": "nuovi",
+      "femininePlural": "nuove"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 24,
+    "type": "adjective",
+    "english": "ugly",
+    "italian": "brutto",
+    "details": {
+      "masculineSingular": "brutto",
+      "feminineSingular": "brutta",
+      "masculinePlural": "brutti",
+      "femininePlural": "brutte"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1"
+    ]
+  },
+  {
+    "id": 25,
+    "type": "noun",
+    "english": "skirt",
+    "italian": "gonna",
+    "details": {
+      "gender": "feminine",
+      "singular": "gonna",
+      "plural": "gonne",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la gonna",
+      "definitePlural": "le gonne",
+      "indefinite": "una gonna"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 26,
+    "type": "noun",
+    "english": "T-shirt",
+    "italian": "maglietta",
+    "details": {
+      "gender": "feminine",
+      "singular": "maglietta",
+      "plural": "magliette",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la maglietta",
+      "definitePlural": "le magliette",
+      "indefinite": "una maglietta"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 27,
+    "type": "noun",
+    "english": "shoe",
+    "italian": "scarpa",
+    "details": {
+      "gender": "feminine",
+      "singular": "scarpa",
+      "plural": "scarpe",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la scarpa",
+      "definitePlural": "le scarpe",
+      "indefinite": "una scarpa"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 28,
+    "type": "noun",
+    "english": "checkout",
+    "italian": "cassa",
+    "details": {
+      "gender": "feminine",
+      "singular": "cassa",
+      "plural": "casse",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la cassa",
+      "definitePlural": "le casse",
+      "indefinite": "una cassa"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 29,
+    "type": "noun",
+    "english": "fitting room",
+    "italian": "camerino",
+    "details": {
+      "gender": "masculine",
+      "singular": "camerino",
+      "plural": "camerini",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il camerino",
+      "definitePlural": "i camerini",
+      "indefinite": "un camerino"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1"
+    ]
+  },
+  {
+    "id": 30,
+    "type": "noun",
+    "english": "mosque",
+    "italian": "moschea",
+    "details": {
+      "gender": "feminine",
+      "singular": "moschea",
+      "plural": "moschee",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la moschea",
+      "definitePlural": "le moschee",
+      "indefinite": "una moschea"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 31,
+    "type": "noun",
+    "english": "house",
+    "italian": "casa",
+    "details": {
+      "gender": "feminine",
+      "singular": "casa",
+      "plural": "case",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la casa",
+      "definitePlural": "le case",
+      "indefinite": "una casa"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 32,
+    "type": "noun",
+    "english": "Venice",
+    "italian": "Venezia",
+    "details": {
+      "gender": "feminine",
+      "singular": "Venezia",
+      "plural": "",
+      "definiteSingularArticle": "",
+      "definitePluralArticle": "",
+      "indefiniteArticle": "",
+      "definiteSingular": "Venezia",
+      "definitePlural": "",
+      "indefinite": ""
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 33,
+    "type": "noun",
+    "english": "center",
+    "italian": "centro",
+    "details": {
+      "gender": "masculine",
+      "singular": "centro",
+      "plural": "centri",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il centro",
+      "definitePlural": "i centri",
+      "indefinite": "un centro"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 34,
+    "type": "noun",
+    "english": "meatball",
+    "italian": "polpetta",
+    "details": {
+      "gender": "feminine",
+      "singular": "polpetta",
+      "plural": "polpette",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la polpetta",
+      "definitePlural": "le polpette",
+      "indefinite": "una polpetta"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 35,
+    "type": "noun",
+    "english": "potato",
+    "italian": "patata",
+    "details": {
+      "gender": "feminine",
+      "singular": "patata",
+      "plural": "patate",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la patata",
+      "definitePlural": "le patate",
+      "indefinite": "una patata"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 36,
+    "type": "noun",
+    "english": "bean",
+    "italian": "fagiolo",
+    "details": {
+      "gender": "masculine",
+      "singular": "fagiolo",
+      "plural": "fagioli",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il fagiolo",
+      "definitePlural": "i fagioli",
+      "indefinite": "un fagiolo"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 37,
+    "type": "noun",
+    "english": "drink",
+    "italian": "bibita",
+    "details": {
+      "gender": "feminine",
+      "singular": "bibita",
+      "plural": "bibite",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la bibita",
+      "definitePlural": "le bibite",
+      "indefinite": "una bibita"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 38,
+    "type": "noun",
+    "english": "cake",
+    "italian": "torta",
+    "details": {
+      "gender": "feminine",
+      "singular": "torta",
+      "plural": "torte",
+      "definiteSingularArticle": "la",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "una",
+      "definiteSingular": "la torta",
+      "definitePlural": "le torte",
+      "indefinite": "una torta"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 39,
+    "type": "noun",
+    "english": "cookie",
+    "italian": "biscotto",
+    "details": {
+      "gender": "masculine",
+      "singular": "biscotto",
+      "plural": "biscotti",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il biscotto",
+      "definitePlural": "i biscotti",
+      "indefinite": "un biscotto"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1"
+    ]
+  },
+  {
+    "id": 40,
+    "type": "noun",
+    "english": "bill",
+    "italian": "conto",
+    "details": {
+      "gender": "masculine",
+      "singular": "conto",
+      "plural": "conti",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il conto",
+      "definitePlural": "i conti",
+      "indefinite": "un conto"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 41,
+    "type": "noun",
+    "english": "umbrella",
+    "italian": "ombrello",
+    "details": {
+      "gender": "masculine",
+      "singular": "ombrello",
+      "plural": "ombrelli",
+      "definiteSingularArticle": "l’",
+      "definitePluralArticle": "gli",
+      "indefiniteArticle": "un",
+      "definiteSingular": "l’ombrello",
+      "definitePlural": "gli ombrelli",
+      "indefinite": "un ombrello"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1",
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 42,
+    "type": "noun",
+    "english": "raincoat",
+    "italian": "impermeabile",
+    "details": {
+      "gender": "masculine",
+      "singular": "impermeabile",
+      "plural": "impermeabili",
+      "definiteSingularArticle": "l’",
+      "definitePluralArticle": "gli",
+      "indefiniteArticle": "un",
+      "definiteSingular": "l’impermeabile",
+      "definitePlural": "gli impermeabili",
+      "indefinite": "un impermeabile"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1",
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 43,
+    "type": "noun",
+    "english": "clothes",
+    "italian": "vestiti",
+    "details": {
+      "gender": "masculine",
+      "singular": "",
+      "plural": "vestiti",
+      "definiteSingularArticle": "",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "",
+      "definiteSingular": "",
+      "definitePlural": "i vestiti",
+      "indefinite": ""
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 44,
+    "type": "noun",
+    "english": "exit",
+    "italian": "uscita",
+    "details": {
+      "gender": "feminine",
+      "singular": "uscita",
+      "plural": "uscite",
+      "definiteSingularArticle": "l’",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "un’",
+      "definiteSingular": "l’uscita",
+      "definitePlural": "le uscite",
+      "indefinite": "un’uscita"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 45,
+    "type": "noun",
+    "english": "entrance",
+    "italian": "entrata",
+    "details": {
+      "gender": "feminine",
+      "singular": "entrata",
+      "plural": "entrate",
+      "definiteSingularArticle": "l’",
+      "definitePluralArticle": "le",
+      "indefiniteArticle": "un’",
+      "definiteSingular": "l’entrata",
+      "definitePlural": "le entrate",
+      "indefinite": "un’entrata"
+    },
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 46,
+    "type": "noun",
+    "english": "coat",
+    "italian": "cappotto",
+    "details": {
+      "gender": "masculine",
+      "singular": "cappotto",
+      "plural": "cappotti",
+      "definiteSingularArticle": "il",
+      "definitePluralArticle": "i",
+      "indefiniteArticle": "un",
+      "definiteSingular": "il cappotto",
+      "definitePlural": "i cappotti",
+      "indefinite": "un cappotto"
+    },
+    "setName": null,
+    "tags": [
+      "__deck__:Trouble · 2026-08-15 · 1",
+      "__deck__:Trouble · 2026-08-15 · 2"
+    ]
+  },
+  {
+    "id": 49,
+    "type": "adverb",
+    "english": "very",
+    "italian": "molto",
+    "details": {},
+    "setName": null,
+    "tags": []
+  },
+  {
+    "id": 50,
+    "type": "noun",
+    "english": "backpack",
+    "italian": "zaino",
+    "details": {
+      "gender": "masculine",
+      "singular": "zaino",
+      "plural": "zaini",
+      "definiteSingularArticle": "lo",
+      "definitePluralArticle": "gli",
+      "indefiniteArticle": "uno",
+      "definiteSingular": "lo zaino",
+      "definitePlural": "gli zaini",
+      "indefinite": "uno zaino"
+    },
+    "setName": null,
+    "tags": [
+      "test"
+    ]
+  },
+  {
+    "id": 51,
+    "type": "adjective",
+    "english": "green",
+    "italian": "verde",
+    "details": {
+      "masculineSingular": "verde",
+      "feminineSingular": "verde",
+      "masculinePlural": "verdi",
+      "femininePlural": "verdi"
+    },
+    "setName": null,
+    "tags": []
+  }
+]
