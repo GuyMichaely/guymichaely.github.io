@@ -1,0 +1,53 @@
+name: Build Parola
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "parola-src/**"
+      - ".github/workflows/build-parola.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: parola-pages-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install and build Parola
+        working-directory: parola-src
+        run: |
+          npm install
+          npm run build
+
+      - name: Publish under /parola
+        run: |
+          rm -rf parola
+          mkdir -p parola
+          cp -a parola-src/dist/. parola/
+          touch parola/.nojekyll
+
+      - name: Commit generated site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add parola
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+          git commit -m "Build Parola"
+          git push
