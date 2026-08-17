@@ -33,6 +33,7 @@ jobs:
           mkdir -p /tmp/parola-unpack
           unzip -q /tmp/parola.zip -d /tmp/parola-unpack
           mv /tmp/parola-unpack/parola-static parola-src
+          sed -i 's/ES2020/ES2022/g' parola-src/tsconfig.json
 
       - name: Set up Node
         uses: actions/setup-node@v4
