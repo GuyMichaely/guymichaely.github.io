@@ -1,5 +1,3 @@
-import seedCards from "./data/current-cards.json";
-
 export type CardType = "noun" | "verb" | "adjective" | "adverb";
 
 export type Flashcard = {
@@ -44,17 +42,9 @@ function normalizeCard(value: unknown): Flashcard {
   };
 }
 
-function initialCards(): Flashcard[] {
-  return (seedCards as unknown[]).map(normalizeCard);
-}
-
 function readLocalCards(): Flashcard[] {
   const stored = window.localStorage.getItem(cardsKey);
-  if (!stored) {
-    const cards = initialCards();
-    writeLocalCards(cards);
-    return cards;
-  }
+  if (!stored) return [];
   const parsed = JSON.parse(stored) as unknown;
   if (!Array.isArray(parsed)) throw new Error("Local card storage is invalid.");
   return parsed.map(normalizeCard);

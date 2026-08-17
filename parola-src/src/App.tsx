@@ -264,9 +264,8 @@ function standardNounPattern(singular: string, gender: NounGender) {
   return { singular: word, plural, definiteSingularArticle, definitePluralArticle, indefiniteArticle };
 }
 
-function keywordMatches(value: string, configured: string, aliases: string[]) {
-  const normalized = normalizeAnswer(value);
-  return [configured, ...aliases].some((candidate) => normalizeAnswer(candidate) === normalized);
+function keywordMatches(value: string, configured: string, _aliases: string[] = []) {
+  return normalizeAnswer(value) === normalizeAnswer(configured);
 }
 
 function parseRegularNounAnswer(value: string, keywords: AnswerKeywords) {
@@ -782,7 +781,7 @@ function ItalianVerificationForm({ card, syntaxMode, compactType, keywords, onRe
       <details className="answer-syntax-help">
         <summary>Answer format</summary>
         <div>
-          <p><strong>Noun:</strong> omit <code>{keywords.noun}</code> when an article or gender/number markers identify the noun format. Full: <code>il libro i libri un</code> or <code>l’entrata le entrate un’</code>. Plural-only: <code>i vestiti</code>. Articleless singular-only: <code>{keywords.feminine} {keywords.singularOnly} Venezia</code>. An ambiguous article also needs gender: <code>{keywords.feminine} {keywords.singularOnly} l’Aquila</code>. <code>s</code>/<code>p</code> are also accepted number aliases.</p>
+          <p><strong>Noun:</strong> omit <code>{keywords.noun}</code> when an article or gender/number markers identify the noun format. Full: <code>il libro i libri un</code> or <code>l’entrata le entrate un’</code>. Plural-only: <code>i vestiti</code>. Articleless singular-only: <code>{keywords.feminine} {keywords.singularOnly} Venezia</code>. An ambiguous article also needs gender: <code>{keywords.feminine} {keywords.singularOnly} l’Aquila</code>.</p>
           <p><strong>Verb:</strong> <code>{keywords.verb} infinitive io tu lui/lei noi voi loro auxiliary participle</code>.</p>
           <p><strong>Adjective:</strong> regular shorthand <code>{keywords.adjective} bello</code>, or full <code>{keywords.adjective} bello bella belli belle</code>.</p>
           <p><strong>Adverb:</strong> invariant form <code>{keywords.adverb} molto</code>.</p>
