@@ -23,3 +23,24 @@ self.addEventListener("fetch", event => {
     }
   })());
 });
+
+// Notifications the app has this page take (frame.js): its server pushes { title, body, tag, url },
+// and tapping one opens `url` (this page, at the app's view for it), in a window already showing
+// this page if there is one.
+self.addEventListener("push", event => {
+  const { title, body, tag, url } = event.data?.json() ?? {};
+  if (title) event.waitUntil(self.registration.showNotification(title, { body, tag, data: { url } }));
+});
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const url = event.notification.data?.url;
+  if (!url) return;
+  event.waitUntil((async () => {
+    const page = new URL(url);
+    for (const client of await self.clients.matchAll({ type: "window" })) {
+      const at = new URL(client.url);
+      if (at.origin === page.origin && at.pathname === page.pathname) { await client.focus(); return client.navigate(url); }
+    }
+    return self.clients.openWindow(url);
+  })());
+});
