@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="canonical" href="https://guymichaely.com/">
 
 		<meta property="og:type" content="website">
@@ -30,6 +31,31 @@
             }
 			ul + p {
                 margin-top: 0.75em;
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    min-height: 100svh;
+                    padding: 1.25rem;
+                    box-sizing: border-box;
+                    font-size: 18px;
+                    line-height: 1.4;
+                }
+                div {
+                    width: 100%;
+                }
+                h2 {
+                    margin-block: 0 0.7em;
+                }
+                p, ul {
+                    margin-block: 0.7em;
+                }
+                ul {
+                    padding-inline-start: 1.4em;
+                }
+                li + li {
+                    margin-top: 0.35em;
+                }
             }
 		</style>
 	</head>
