@@ -1,97 +1,70 @@
-<html>
-	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="canonical" href="https://guymichaely.com/">
-
-		<meta property="og:type" content="website">
-		<meta property="og:url" content="https://guymichaely.com/">
-
-		<meta property="og:title" content="Guy Michaely">
-
-		<style>
-			body {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-                background: #111;
-                color: #eee;
-                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            }
-			a {
-                color: #8ab4f8;
-            }
-			a:visited {
-                color: #c58af9;
-            }
-			div {
-                width: max-content;
-                max-width: 100%;
-            }
-			p, ul {
-                margin-block: 0.5em;
-            }
-			ul + p {
-                margin-top: 0.75em;
-            }
-
-            @media (max-width: 600px) {
-                body {
-                    min-height: 100svh;
-                    padding: 1.25rem;
-                    box-sizing: border-box;
-                    font-size: 18px;
-                    line-height: 1.4;
-                }
-                h2 {
-                    margin-block: 0 0.7em;
-                }
-                p, ul {
-                    margin-block: 0.7em;
-                }
-                ul {
-                    padding-inline-start: 1.4em;
-                }
-                li + li {
-                    margin-top: 0.35em;
-                }
-            }
-		</style>
-	</head>
-
-	<body>
-		<div>
-			<a href="mailto:guymichaely@gmail.com"><h2>Guy Michaely</h2></a>
-			<p>Pet projects:</p>
-			<ul>
-				<li>
-					<a href="fire">fire</a>, your portfolio
-				</li>
-				<li>
-					<a href="/calendar/">calendar</a>, events and tasks
-				</li>
-				<li>
-					<a href="https://italian.guymichaely.com/">italian</a>, Italian flashcards
-				</li>
-				<li>
-					<a href="https://nutrition.guymichaely.com/">nutrition</a>, macro tracking
-				</li>
-				<li>
-					<a href="/cubedrill/">cubedrill</a>, Rubik's cube algorithms
-				</li>
-			</ul>
-			<p>Favorite place on the Internet:</p>
-			<ul>
-				<li>
-					<a href="https://billwurtz.com/questions/questions.html">billwurtz.com/questions/questions.html</a>
-				</li>
-			</ul>
-			<p>Languages I have a tenuous relationship with:</p>
-			<ul>
-				<li>Java</li>
-				<li>French</li>
-			</ul>
-		</div>
-    </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="canonical" href="https://guymichaely.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://guymichaely.com/">
+  <meta property="og:title" content="Guy Michaely">
+  <title>Guy Michaely</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .site-name {
+      position: absolute;
+      top: 1rem;
+      left: 0;
+      width: 100%;
+      margin: 0;
+      text-align: center;
+      font-size: 2rem;
+    }
+    .site-name a { color: inherit; text-decoration: none; }
+    main { width: max-content; max-width: 100%; }
+    a { color: #8ab4f8; }
+    a:visited { color: #c58af9; }
+    p, ul { margin-block: 0.5em; }
+    ul + p { margin-top: 0.75em; }
+    .contact { font-size: 1rem; }
+    @media (max-width: 600px) {
+      body { min-height: 100svh; padding: 5rem 1.25rem 1.25rem; box-sizing: border-box; font-size: 18px; line-height: 1.4; }
+      .site-name { top: 1rem; font-size: 1.75rem; }
+      main { width: 100%; }
+      p, ul { margin-block: 0.7em; }
+      ul { padding-inline-start: 1.4em; }
+      li + li { margin-top: 0.35em; }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="site-name"><a href="https://guymichaely.com/">Guy Michaely</a></h1>
+  <main>
+    <p>Pet projects:</p>
+    <ul>
+      <li><a href="fire">fire</a>, your portfolio</li>
+      <li><a href="/calendar/">calendar</a>, events and tasks</li>
+      <li><a href="https://italian.guymichaely.com/">italian</a>, Italian flashcards</li>
+      <li><a href="https://nutrition.guymichaely.com/">nutrition</a>, macro tracking</li>
+      <li><a href="/cubedrill/">cubedrill</a>, Rubik's cube algorithms</li>
+    </ul>
+    <p>Favorite place on the Internet:</p>
+    <ul>
+      <li><a href="https://billwurtz.com/questions/questions.html">billwurtz.com/questions/questions.html</a></li>
+    </ul>
+    <p>Languages I have a tenuous relationship with:</p>
+    <ul>
+      <li>Java</li>
+      <li>French</li>
+    </ul>
+    <p class="contact">Email: <a href="mailto:guymichaely@gmail.com">guymichaely@gmail.com</a></p>
+  </main>
+</body>
 </html>
