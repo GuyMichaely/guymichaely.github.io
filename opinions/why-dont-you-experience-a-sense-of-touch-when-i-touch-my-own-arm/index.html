@@ -10,8 +10,10 @@
   <title>Why don't you experience a sense of touch when I touch my own arm?</title>
   <style>
     body { margin: 0; padding: 6rem 2rem 2rem; background: #111; color: #eee; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
-    .site-name { position: absolute; top: 1rem; left: 0; width: 100%; margin: 0; text-align: center; font-size: 2rem; }
-    .site-name a { color: inherit; text-decoration: none; }
+    .site-header { position: absolute; top: 1rem; left: 2rem; }
+    .site-name { margin: 0; font-size: 2rem; }
+    .site-name a,
+    .site-name a:visited { color: inherit; text-decoration: none; }
     main { max-width: 48rem; margin: 0 auto; }
     a { color: #8ab4f8; }
     a:visited { color: #c58af9; }
@@ -22,11 +24,18 @@
     li { margin-block: 0.2em; }
     ul ul { margin-block: 0.15em; }
     hr { margin: 1.2em 0; border: 0; border-top: 1px solid #555; }
-    @media (max-width: 600px) { body { padding: 5.5rem 1.25rem 1.25rem; font-size: 18px; line-height: 1.45; } .site-name { font-size: 1.75rem; } h1 { font-size: 1.55rem; } }
+    @media (max-width: 600px) {
+      body { padding: 5.5rem 1.25rem 1.25rem; font-size: 18px; line-height: 1.45; }
+      .site-header { left: 1.25rem; }
+      .site-name { font-size: 1.75rem; }
+      h1 { font-size: 1.55rem; }
+    }
   </style>
 </head>
 <body>
-  <h1 class="site-name"><a href="https://guymichaely.com/">Guy Michaely</a></h1>
+  <header class="site-header">
+    <h1 class="site-name"><a href="https://guymichaely.com/">Guy Michaely</a></h1>
+  </header>
   <main>
     <h1>Why don't you experience a sense of touch when I touch my own arm?</h1>
 
